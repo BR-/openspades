@@ -560,6 +560,7 @@ namespace spades {
 				// draw "press ... to reload"
 				{
 					std::string msg = "";
+					bool red = true;
 
 					switch (p->GetTool()) {
 						case Player::ToolBlock:
@@ -576,6 +577,7 @@ namespace spades {
 							Weapon *weap = p->GetWeapon();
 							if (weap->IsReloading() || p->IsAwaitingReloadCompletion()) {
 								msg = _Tr("Client", "Reloading");
+								red = false;
 							} else if (weap->GetAmmo() == 0 && weap->GetStock() == 0) {
 								msg = _Tr("Client", "Out of Ammo");
 							} else if (weap->GetStock() > 0 &&
@@ -589,10 +591,16 @@ namespace spades {
 					}
 
 					if (!msg.empty()) {
-						font = fontManager->GetGuiFont();
-						Vector2 size = font->Measure(msg);
+						float scale = 3;
+						font = fontManager->GetLargeFont();
+						Vector2 size = font->Measure(msg) * scale;
 						Vector2 pos = MakeVector2((scrWidth - size.x) * .5f, scrHeight * 2.f / 3.f);
-						font->DrawShadow(msg, pos, 1.f, MakeVector4(1, 1, 1, 1),
+						Vector4 color;
+						if (red)
+							color = MakeVector4(1, 0, 0, 1);
+						else
+							color = MakeVector4(1, 1, 1, 1);
+						font->DrawShadow(msg, pos, scale, color,
 						                 MakeVector4(0, 0, 0, 0.5));
 					}
 				}
