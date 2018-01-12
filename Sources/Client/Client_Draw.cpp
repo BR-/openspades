@@ -52,6 +52,7 @@
 #include "Tracer.h"
 #include "IGameMode.h"
 #include "CTFGameMode.h"
+#include "HitTestDebugger.h"
 
 #include "GameMap.h"
 #include "Grenade.h"
@@ -616,6 +617,25 @@ namespace spades {
 			}
 		}
 
+		void Client::DrawHitTestDebugger() {
+			SPADES_MARK_FUNCTION();
+
+			auto dbg = world->GetHitTestDebugger();
+			if (!dbg)
+				return;
+
+			auto bitmap = dbg->GetBitmap();
+			if (bitmap) {
+				debugHitTestImage.Set(renderer->CreateImage(bitmap));
+				//bitmap->Save("HitTestDebugger/update.tga");
+			}
+
+			if (debugHitTestImage)
+				renderer->DrawImage(debugHitTestImage,
+					AABB2(renderer->ScreenWidth() - 512 - 100, renderer->ScreenHeight() - 512, 512, 512),
+					AABB2(128, 512-128, 256, 256-512)); // flip Y axis
+		}
+
 		void Client::DrawDeadPlayerHUD() {
 			SPADES_MARK_FUNCTION();
 
@@ -844,6 +864,8 @@ namespace spades {
 						DrawDeadPlayerHUD();
 						DrawSpectateHUD();
 					}
+
+					DrawHitTestDebugger();
 				} else {
 					DrawSpectateHUD();
 				}

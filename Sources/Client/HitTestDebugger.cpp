@@ -56,6 +56,10 @@ namespace spades {
 			port.Set(new Port(), false);
 			renderer.Set(new draw::SWRenderer(port), false);
 			renderer->Init();
+
+			GameMap *map = world->GetMap();
+			if (map != nullptr)
+				renderer->SetGameMap(map);
 		}
 
 		HitTestDebugger::~HitTestDebugger() {
@@ -250,7 +254,7 @@ namespace spades {
 				x = floorf(x);
 				y = floorf(y);
 				renderer->SetColorAlphaPremultiplied(Vector4(1.f, 0.f, 0.f, 0.9f));
-				renderer->DrawImage(img, AABB2(x - 1.f, y - 1.f, 3.f, 3.f));
+				renderer->DrawImage(img, AABB2(x - 3.f, y - 3.f, 7.f, 7.f));
 				renderer->SetColorAlphaPremultiplied(Vector4(1.f, 1.f, 0.f, 0.9f));
 				renderer->DrawImage(img, AABB2(x, y, 1.f, 1.f));
 			}
@@ -298,7 +302,8 @@ namespace spades {
 			// save image
 			try {
 				Handle<Bitmap> b(renderer->ReadBitmap(), false);
-				b->Save(fileName);
+				//b->Save(fileName);
+				displayShot.Set(b);
 				SPLog("HitTestDebugger: saved to '%s'", fileName.c_str());
 			} catch (const std::exception &ex) {
 				SPLog("HitTestDebugger failure: failed to save '%s': %s", fileName.c_str(),
@@ -306,6 +311,12 @@ namespace spades {
 			}
 
 			renderer->Flip();
+		}
+
+		Handle<Bitmap> HitTestDebugger::GetBitmap() {
+			Handle<Bitmap> tmp = displayShot;
+			displayShot.Set(nullptr);
+			return tmp;
 		}
 	}
 }

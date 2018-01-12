@@ -36,6 +36,7 @@
 #include <Core/Stopwatch.h>
 #include <Gui/View.h>
 #include "ClientCameraMode.h"
+#include "IImage.h"
 
 namespace spades {
 	class IStream;
@@ -135,6 +136,7 @@ namespace spades {
 			std::unique_ptr<LimboView> limbo;
 			std::unique_ptr<PaletteView> paletteView;
 			std::unique_ptr<TCProgressView> tcView;
+			Handle<IImage> debugHitTestImage;
 
 			// chat
 			std::unique_ptr<ChatWindow> chatWindow;
@@ -375,6 +377,7 @@ namespace spades {
 			void DrawAlert();
 			void DrawDebugAim();
 			void DrawStats();
+			void DrawHitTestDebugger();
 
 			void DrawScene();
 			void AddGrenadeToScene(Grenade *);
