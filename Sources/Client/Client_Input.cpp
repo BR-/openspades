@@ -85,6 +85,8 @@ DEFINE_SPADES_SETTING(cg_alerts, "1");
 SPADES_SETTING(cg_manualFocus);
 DEFINE_SPADES_SETTING(cg_keyAutoFocus, "MiddleMouseButton");
 
+SPADES_SETTING(cg_fov);
+
 namespace spades {
 	namespace client {
 
@@ -153,12 +155,25 @@ namespace spades {
 					SPAssert(world);
 					SPAssert(world->GetLocalPlayer());
 
+					if (x == 0 && y == 0)
+						break;
+
 					Player *p = world->GetLocalPlayer();
 					if (p->IsAlive()) {
 						float aimDownState = GetAimDownState();
-						x /= GetAimDownZoomScale();
-						y /= GetAimDownZoomScale();
+						
+						float zoomScale = GetAimDownZoomScale();
+						if (zoomScale != 1) {
+							float fov = (float)cg_fov * M_PI / 180.f;
+							float zoomfov = atan(tan(fov / 2) / zoomScale) * 2;
+							float aspect_ratio = renderer->ScreenHeight() / renderer->ScreenWidth();
+							float k = atan(aspect_ratio * tan(zoomfov / 2)) / atan(aspect_ratio * tan(fov / 2));
 
+							x *= k;
+							y *= k;
+						}
+
+						// TODO: mouse acceration is framerate dependent
 						float rad = x * x + y * y;
 						if (rad > 0.f) {
 							if ((float)cg_mouseExpPower < 0.001f ||
