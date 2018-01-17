@@ -585,6 +585,7 @@ namespace spades {
 							           weap->GetAmmo() < weap->GetClipSize() / 4) {
 								msg = _Tr("Client", "Press [{0}] to Reload",
 								          TranslateKeyName(cg_keyReloadWeapon));
+								red = weap->GetAmmo() == 0;
 							}
 						} break;
 						default:;
