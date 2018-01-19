@@ -166,7 +166,7 @@ namespace spades {
 						if (zoomScale != 1) {
 							float fov = (float)cg_fov * M_PI / 180.f;
 							float zoomfov = atan(tan(fov / 2) / zoomScale) * 2;
-							float k = zoomfov / fov;
+							float k = atan(0.01 * tan(zoomfov/2)) / atan(0.01 * tan(fov/2));
 
 							x *= k;
 							y *= k;
