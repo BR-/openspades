@@ -634,7 +634,7 @@ namespace spades {
 			if (debugHitTestImage) {
 				renderer->SetColorAlphaPremultiplied(MakeVector4(1, 1, 1, 1));
 				renderer->DrawImage(debugHitTestImage,
-					AABB2(renderer->ScreenWidth() - 512 - 100, renderer->ScreenHeight() - 512, 512, 512),
+					AABB2(renderer->ScreenWidth() - 512, renderer->ScreenHeight() - 512, 512, 512),
 					AABB2(128, 512 - 128, 256, 256 - 512)); // flip Y axis
 			}
 		}
@@ -861,14 +861,15 @@ namespace spades {
 
 				if (p->GetTeamId() < 2) {
 					// player is not spectator
+
+					DrawHitTestDebugger();
+
 					if (p->IsAlive()) {
 						DrawJoinedAlivePlayerHUD();
 					} else {
 						DrawDeadPlayerHUD();
 						DrawSpectateHUD();
 					}
-
-					DrawHitTestDebugger();
 				} else {
 					DrawSpectateHUD();
 				}
