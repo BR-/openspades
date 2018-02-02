@@ -781,11 +781,12 @@ namespace spades {
 			}
 
 			if (airborne) {
+				horzModifier *= 2;
 				vertModifier *= 2;
 			}
 			else if (input.crouch) {
-				vertModifier /= 2;
 				horzModifier /= 2;
+				vertModifier /= 2;
 			}
 
 			horzModifier *= sqrt(1 - pow(o.z, 4));
