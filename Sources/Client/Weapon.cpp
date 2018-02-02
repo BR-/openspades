@@ -218,7 +218,7 @@ namespace spades {
 				}
 			}
 			virtual Vector3 GetRecoil() {
-				return MakeVector3(0.025f, 0.05f, 0.f); // measured
+				return MakeVector3(0.000099999997f, 0.05f, 0.f); // measured
 			}
 			virtual float GetSpread() { return 0.012f; } // measured (standing, crouched)
 			virtual int GetPelletSize() { return 1; }
@@ -245,7 +245,7 @@ namespace spades {
 				}
 			}
 			virtual Vector3 GetRecoil() {
-				return MakeVector3(0.01f, 0.0125f, 0.f); // measured
+				return MakeVector3(0.000049999999f, 0.0125f, 0.f); // measured
 			}
 			virtual float GetSpread() { return 0.025f; } // measured (standing, crouched)
 			virtual int GetPelletSize() { return 1; }
@@ -275,7 +275,7 @@ namespace spades {
 				}
 			}
 			virtual Vector3 GetRecoil() {
-				return MakeVector3(0.05f, 0.1f, 0.f); // measured
+				return MakeVector3(0.00019999999f, 0.1f, 0.f); // measured
 			}
 			virtual float GetSpread() { return 0.024f; }
 			virtual int GetPelletSize() { return 8; }
