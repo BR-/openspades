@@ -36,6 +36,8 @@
 		private Model@ sightModel1;
 		private Model@ sightModel2;
 
+		private Image@ scopeImage;
+
 		ViewRifleSkin(Renderer@ r, AudioDevice@ dev){
 			super(r);
 			@audioDevice = dev;
@@ -61,6 +63,9 @@
 				("Sounds/Weapons/Rifle/V2AmbienceSmall.opus");
 			@fireLargeReverbSound = dev.RegisterSound
 				("Sounds/Weapons/Rifle/V2AmbienceLarge.opus");
+
+			@scopeImage = renderer.RegisterImage
+				("Gfx/semi.png");
 		}
 
 		void Update(float dt) {
@@ -114,12 +119,18 @@
 		}
 
 		void Draw2D() {
-			if(AimDownSightState > 0.6)
-				return;
-			BasicViewWeapon::Draw2D();
+			Image@ crosshair = (AimDownSightState > 0.99) ? scopeImage : sightImage;
+			renderer.ColorNP = (Vector4(1.f, 1.f, 1.f, 1.f));
+			renderer.DrawImage(crosshair,
+				Vector2((renderer.ScreenWidth - crosshair.Width) * 0.5f,
+					(renderer.ScreenHeight - crosshair.Height) * 0.5f));
 		}
 
 		void AddToScene() {
+			if (AimDownSightStateSmooth > 0.99) {
+				return;
+			}
+
 			Matrix4 mat = CreateScaleMatrix(0.033f);
 			mat = GetViewWeaponMatrix() * mat;
 
