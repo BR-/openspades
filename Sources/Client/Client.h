@@ -29,6 +29,7 @@
 #include "IRenderer.h"
 #include "IWorldListener.h"
 #include "MumbleLink.h"
+#include "TwitchLink.h"
 #include "NoiseSampler.h"
 #include "Player.h"
 #include <Core/Math.h>
@@ -123,6 +124,7 @@ namespace spades {
 			float timeSinceInit;
 
 			MumbleLink mumbleLink;
+			std::unique_ptr<TwitchLink> twitchLink;
 
 			// view/drawing state for some world objects
 			std::vector<Handle<ClientPlayer>> clientPlayers;
@@ -427,6 +429,7 @@ namespace spades {
 			bool IsMuted();
 
 			void PlayerSentChatMessage(Player *, bool global, const std::string &);
+			void TwitchSentMessage(const std::string &);
 			void ServerSentMessage(const std::string &);
 
 			void PlayerCapturedIntel(Player *);

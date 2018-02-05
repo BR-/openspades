@@ -54,9 +54,19 @@ namespace spades {
 														 asCALL_THISCALL);
 						manager->CheckError(r);
 						r = eng->RegisterObjectMethod("ClientUIHelper",
-													  "void SayGlobal(const string& in)",
-													  asMETHOD(ClientUIHelper, SayGlobal),
-													  asCALL_THISCALL);
+							"void SayGlobal(const string& in)",
+							asMETHOD(ClientUIHelper, SayGlobal),
+							asCALL_THISCALL);
+						manager->CheckError(r);
+						r = eng->RegisterObjectMethod("ClientUIHelper",
+							"void SayTwitch(const string& in)",
+							asMETHOD(ClientUIHelper, SayTwitch),
+							asCALL_THISCALL);
+						manager->CheckError(r);
+						r = eng->RegisterObjectMethod("ClientUIHelper",
+							"void SayLogin()",
+							asMETHOD(ClientUIHelper, SayLogin),
+							asCALL_THISCALL);
 						manager->CheckError(r);
 						r = eng->RegisterObjectMethod("ClientUIHelper",
 													  "void SayTeam(const string& in)",

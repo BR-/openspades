@@ -154,22 +154,29 @@ namespace spades {
         }
     }
 
+	enum ChatType {
+		global,
+		team,
+		twitch
+	};
+
     class ClientChatWindow: spades::ui::UIElement {
         private ClientUI@ ui;
         private ClientUIHelper@ helper;
 
         CommandField@ field;
         spades::ui::Button@ sayButton;
+		spades::ui::SimpleButton@ twitchButton;
         spades::ui::SimpleButton@ teamButton;
         spades::ui::SimpleButton@ globalButton;
 
-        bool isTeamChat;
+        spades::ChatType chatType;
 
-        ClientChatWindow(ClientUI@ ui, bool isTeamChat) {
+        ClientChatWindow(ClientUI@ ui, spades::ChatType chatType) {
             super(ui.manager);
             @this.ui = ui;
             @this.helper = ui.helper;
-            this.isTeamChat = isTeamChat;
+            this.chatType = chatType;
 
             float winW = Manager.Renderer.ScreenWidth * 0.7f, winH = 66.f;
             float winX = (Manager.Renderer.ScreenWidth - winW) * 0.5f;
@@ -213,7 +220,7 @@ namespace spades {
             {
                 @globalButton = spades::ui::SimpleButton(Manager);
                 globalButton.Toggle = true;
-                globalButton.Toggled = isTeamChat == false;
+                globalButton.Toggled = chatType == spades::ChatType::global;
                 globalButton.Caption = _Tr("Client", "Global");
                 globalButton.Bounds = AABB2(winX, winY + 36.f, 70.f, 30.f);
                 @globalButton.Activated = spades::ui::EventHandler(this.OnSetGlobal);
@@ -222,35 +229,44 @@ namespace spades {
             {
                 @teamButton = spades::ui::SimpleButton(Manager);
                 teamButton.Toggle = true;
-                teamButton.Toggled = isTeamChat == true;
+                teamButton.Toggled = chatType == spades::ChatType::team;
                 teamButton.Caption = _Tr("Client", "Team");
                 teamButton.Bounds = AABB2(winX + 70.f, winY + 36.f, 70.f, 30.f);
                 @teamButton.Activated = spades::ui::EventHandler(this.OnSetTeam);
                 AddChild(teamButton);
             }
+			{
+				@twitchButton = spades::ui::SimpleButton(Manager);
+				twitchButton.Toggle = true;
+				twitchButton.Toggled = chatType == spades::ChatType::twitch;
+				twitchButton.Caption = _Tr("Client", "Twitch");
+				twitchButton.Bounds = AABB2(winX + 140.f, winY + 36.f, 70.f, 30.f);
+				@twitchButton.Activated = spades::ui::EventHandler(this.OnSetTwitch);
+				AddChild(twitchButton);
+			}
         }
 
         void UpdateState() {
             sayButton.Enable = field.Text.length > 0;
         }
 
-        bool IsTeamChat {
-            get final { return isTeamChat; }
-            set {
-                if(isTeamChat == value) return;
-                isTeamChat = value;
-                teamButton.Toggled = isTeamChat;
-                globalButton.Toggled = not isTeamChat;
-                UpdateState();
-            }
-        }
-
+		void SetType(spades::ChatType newChatType) {
+				if (chatType == newChatType) return;
+				chatType = newChatType;
+				globalButton.Toggled = chatType == spades::ChatType::global;
+				teamButton.Toggled = chatType == spades::ChatType::team;
+				twitchButton.Toggled = chatType == spades::ChatType::twitch;
+				UpdateState();
+		}
         private void OnSetGlobal(spades::ui::UIElement@ sender) {
-            IsTeamChat = false;
+			SetType(spades::ChatType::global);
         }
         private void OnSetTeam(spades::ui::UIElement@ sender) {
-            IsTeamChat = true;
+			SetType(spades::ChatType::team);
         }
+		private void OnSetTwitch(spades::ui::UIElement@ sender) {
+			SetType(spades::ChatType::twitch);
+		}
 
         private void OnFieldChanged(spades::ui::UIElement@ sender) {
             UpdateState();
@@ -292,10 +308,14 @@ namespace spades {
         private void OnSay(spades::ui::UIElement@ sender) {
             field.CommandSent();
             if(!CheckAndSetConfigVariable()) {
-                if(isTeamChat)
+				if (field.Text == "/login")
+					ui.helper.SayLogin();
+                else if(chatType == spades::ChatType::team)
                     ui.helper.SayTeam(field.Text);
-                else
+                else if(chatType == spades::ChatType::global)
                     ui.helper.SayGlobal(field.Text);
+				else if(chatType == spades::ChatType::twitch)
+					ui.helper.SayTwitch(field.Text);
             }
             Close();
         }

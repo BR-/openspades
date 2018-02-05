@@ -45,6 +45,8 @@
 #include <ScriptBindings/IWeaponSkin.h>
 #include <ScriptBindings/ScriptFunction.h>
 
+#undef interface
+
 SPADES_SETTING(cg_ragdoll);
 SPADES_SETTING(cg_ejectBrass);
 DEFINE_SPADES_SETTING(cg_animations, "1");

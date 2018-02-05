@@ -33,10 +33,22 @@ namespace spades {
 			ui->SendChat(text, true);
 		}
 
+		void ClientUIHelper::SayTwitch(const std::string &text) {
+			if (!ui)
+				return;
+			ui->SendTwitch(text);
+		}
+
 		void ClientUIHelper::SayTeam(const std::string &text) {
 			if (!ui)
 				return;
 			ui->SendChat(text, false);
+		}
+
+		void ClientUIHelper::SayLogin() {
+			if (!ui)
+				return;
+			ui->SendLogin();
 		}
 
 		void ClientUIHelper::AlertNotice(const std::string &text) {

@@ -129,18 +129,23 @@ namespace spades {
             @ActiveUI = clientMenu;
         }
 
-        void EnterTeamChatWindow() {
-            ClientChatWindow wnd(this, true);
-            @ActiveUI = wnd;
-            @manager.ActiveElement = wnd.field;
-        }
+		void EnterTwitchChatWindow() {
+			ClientChatWindow wnd(this, spades::ChatType::twitch);
+			@ActiveUI = wnd;
+			@manager.ActiveElement = wnd.field;
+		}
+		void EnterTeamChatWindow() {
+			ClientChatWindow wnd(this, spades::ChatType::team);
+			@ActiveUI = wnd;
+			@manager.ActiveElement = wnd.field;
+		}
         void EnterGlobalChatWindow() {
-            ClientChatWindow wnd(this, false);
+            ClientChatWindow wnd(this, spades::ChatType::global);
             @ActiveUI = wnd;
             @manager.ActiveElement = wnd.field;
         }
         void EnterCommandWindow() {
-            ClientChatWindow wnd(this, true);
+            ClientChatWindow wnd(this, spades::ChatType::team);
             wnd.field.Text = "/";
             wnd.field.Select(1, 0);
             wnd.UpdateState();

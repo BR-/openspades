@@ -45,6 +45,8 @@ namespace spades {
 			std::string ignoreInput;
 
 			void SendChat(const std::string &, bool isGlobal);
+			void SendTwitch(const std::string &);
+			void SendLogin();
 
 			void AlertNotice(const std::string &);
 			void AlertWarning(const std::string &);
@@ -81,6 +83,7 @@ namespace spades {
 			void EnterClientMenu();
 			void EnterGlobalChatWindow();
 			void EnterTeamChatWindow();
+			void EnterTwitchChatWindow();
 			void EnterCommandWindow();
 			void CloseUI();
 

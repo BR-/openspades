@@ -345,6 +345,12 @@ namespace spades {
 			mumbleLink.setContext(hostname.ToString(false));
 			mumbleLink.setIdentity(playerName);
 
+			twitchLink.reset(new TwitchLink(this));
+			if (twitchLink->init())
+				SPLog("Twitch linked");
+			else
+				SPLog("Twitch link failed");
+
 			SPLog("Started connecting to '%s'", hostname.ToString(true).c_str());
 			net.reset(new NetClient(this));
 			net->Connect(hostname);
@@ -430,6 +436,7 @@ namespace spades {
 			} else {
 				renderer->SetFogColor(MakeVector3(0.f, 0.f, 0.f));
 			}
+			twitchLink->update();
 
 			chatWindow->Update(dt);
 			killfeedWindow->Update(dt);
@@ -663,6 +670,15 @@ namespace spades {
 				Handle<IAudioChunk> chunk = audioDevice->RegisterSound("Sounds/Feedback/Chat.opus");
 				audioDevice->PlayLocal(chunk, AudioParam());
 			}
+		}
+		
+		void Client::TwitchSentMessage(const std::string &msg) {
+			ShowAlert(msg, AlertType::Warning);
+
+			std::string prefixed = std::string("[Twitch] ") + msg;
+			NetLog(prefixed.c_str());
+			scriptedUI->RecordChatLog(prefixed, Vector4::Make(1.f, 1.f, 1.f, 0.8f));
+			chatWindow->AddMessage(prefixed);
 		}
 
 		void Client::ServerSentMessage(const std::string &msg) {

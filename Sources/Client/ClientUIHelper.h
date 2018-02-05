@@ -35,8 +35,10 @@ namespace spades {
 			ClientUIHelper(ClientUI *);
 			void ClientUIDestroyed();
 
+			void SayTwitch(const std::string &);
 			void SayGlobal(const std::string &);
 			void SayTeam(const std::string &);
+			void SayLogin();
 
 			void AlertNotice(const std::string &);
 			void AlertWarning(const std::string &);

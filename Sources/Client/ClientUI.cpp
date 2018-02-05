@@ -27,8 +27,12 @@
 #include <Client/Fonts.h>
 #include <Core/Exception.h>
 #include <Core/Settings.h>
+#include <enet/enet.h>
 #include <ScriptBindings/Config.h>
 #include <ScriptBindings/ScriptFunction.h>
+
+DEFINE_SPADES_SETTING(secret_game_login_command, "/login replaceme");
+DEFINE_SPADES_SETTING(secret_game_login_server, "16777343");
 
 namespace spades {
 	namespace client {
@@ -66,6 +70,21 @@ namespace spades {
 			if (!client)
 				return;
 			client->net->SendChat(msg, isGlobal);
+		}
+
+		void ClientUI::SendTwitch(const std::string &msg) {
+			if (!client)
+				return;
+			client->twitchLink->send(msg);
+		}
+
+		void ClientUI::SendLogin() {
+			if (!client)
+				return;
+			if (client->hostname.GetENetAddress().host == (int)secret_game_login_server)
+				client->net->SendChat((std::string)secret_game_login_command, false);
+			else
+				client->ServerSentMessage("!% THIS SERVER DOES NOT MATCH YOUR SAVED DETAILS");
 		}
 
 		void ClientUI::AlertNotice(const std::string &msg) {
@@ -294,6 +313,18 @@ namespace spades {
 
 			ScopedPrivilegeEscalation privilege;
 			static ScriptFunction func("ClientUI", "void EnterTeamChatWindow()");
+			ScriptContextHandle c = func.Prepare();
+			c->SetObject(&*ui);
+			c.ExecuteChecked();
+		}
+		void ClientUI::EnterTwitchChatWindow() {
+			SPADES_MARK_FUNCTION();
+			if (!ui) {
+				return;
+			}
+
+			ScopedPrivilegeEscalation privilege;
+			static ScriptFunction func("ClientUI", "void EnterTwitchChatWindow()");
 			ScriptContextHandle c = func.Prepare();
 			c->SetObject(&*ui);
 			c.ExecuteChecked();
