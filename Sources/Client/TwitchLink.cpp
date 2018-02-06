@@ -10,6 +10,7 @@
 #include <Core/Debug.h>
 #include <Core/Settings.h>
 #include "Client.h"
+#include "enet/enet.h"
 #include "World.h"
 
 #include "TwitchLink.h"
@@ -58,7 +59,23 @@ namespace spades {
 		chatClient->TwitchSentMessage("Goodbye, " + msg.prefix.nick);
 	}
 	void TwitchLink::privmsg(IRCMessage msg, IRCClient* client) {
-		chatClient->TwitchSentMessage(msg.prefix.nick + std::string(": ") + msg.parameters.at(1));
+		if (msg.parameters.at(1) == "!server") {
+			std::stringstream ss;
+			ss << "PRIVMSG #" << (std::string)cl_twitchNick;
+			if (chatClient) {
+				ss << " :I am currently playing on aos://"
+					<< chatClient->hostname.GetENetAddress().host << ":"
+					<< chatClient->hostname.GetENetAddress().port;
+			}
+			else {
+				ss << " :I am not connected to a server right now";
+			}
+			if (!client->SendIRC(ss.str()))
+				failed = true;
+		}
+		else {
+			chatClient->TwitchSentMessage(msg.prefix.nick + std::string(": ") + msg.parameters.at(1));
+		}
 	}
 
 	TwitchLink::TwitchLink(spades::client::Client *chatClient) : chatClient(chatClient) {
@@ -103,6 +120,9 @@ namespace spades {
 				failed = true;
 				return false;
 			}
+		}
+		else {
+			return false; // i guess? it technically did what it set out to do..
 		}
 	}
 
