@@ -122,9 +122,6 @@ namespace spades {
 		}
 
 		float Client::GetAimDownZoomScale() {
-			return 1.1 + sin(time);
-			return 0.2 + 3 * (rand() / (float)RAND_MAX);
-
 			Player &player = GetCameraTargetPlayer();
 			if (!player.IsToolWeapon() || !player.IsAlive()) {
 				return 1.f;
