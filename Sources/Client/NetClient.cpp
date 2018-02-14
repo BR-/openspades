@@ -87,6 +87,7 @@ namespace spades {
 				PacketTypeWeaponReload = 28,    // C2S2P
 				PacketTypeChangeTeam = 29,      // C2S2P
 				PacketTypeChangeWeapon = 30,    // C2S2P
+				PacketTypeMapCached = 31,   // S2C
 				PacketTypeHandShakeInit = 31,   // S2C
 				PacketTypeHandShakeReturn = 32, // C2S
 				PacketTypeVersionGet = 33,      // S2C
@@ -1347,6 +1348,11 @@ namespace spades {
 				} break;
 				case PacketTypeMapStart: {
 					// next map!
+					if (protocolVersion == 4) {
+						NetPacketWriter wri(PacketTypeMapCached);
+						wri.Write((uint8_t)0);
+						enet_peer_send(peer, 0, wri.CreatePacket());
+					}
 					client->SetWorld(NULL);
 					mapSize = reader.ReadInt();
 					status = NetClientStatusReceivingMap;
