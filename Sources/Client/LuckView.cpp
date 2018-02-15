@@ -82,8 +82,11 @@ namespace spades {
 			if (hitHead) hitsHead++;
 			if (hitPlayer) hitsPlayer++;
 			shotsCount++;
-			totalActualDamage += actualDamage;
-			totalNospreadDamage += nospreadDamage;
+			totalActualDamage += actualDamage > 100 ? 100 : actualDamage;
+			totalNospreadDamage += nospreadDamage > 100 ? 100 : nospreadDamage;
+			// should calculate expectation in? e.g. 33% chance of headshot at fogrange so nospread /= 3
+			// shotgun pellets separate?
+			// divide luck by shots? divide actual by nospread?
 		}
 
 		void LuckView::Draw() {
