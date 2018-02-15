@@ -38,6 +38,7 @@
 #include "ClientPlayer.h"
 #include "ClientUI.h"
 #include "HurtRingView.h"
+#include "LuckView.h"
 #include "LimboView.h"
 #include "MapView.h"
 #include "PaletteView.h"
@@ -123,6 +124,7 @@ namespace spades {
 			  new ChatWindow(this, GetRenderer(), fontManager->GetGuiFont(), true));
 
 			hurtRingView.reset(new HurtRingView(this));
+			luckView.reset(new LuckView(this, fontManager->GetGuiFont()));
 			centerMessageView.reset(new CenterMessageView(this, fontManager->GetLargeFont()));
 			mapView.reset(new MapView(this, false));
 			largeMapView.reset(new MapView(this, true));
@@ -245,6 +247,7 @@ namespace spades {
 			paletteView.reset();
 			centerMessageView.reset();
 			hurtRingView.reset();
+			luckView.reset();
 			world.reset();
 		}
 

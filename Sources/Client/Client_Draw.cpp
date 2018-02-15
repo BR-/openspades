@@ -40,6 +40,7 @@
 #include "FallingBlock.h"
 #include "Fonts.h"
 #include "HurtRingView.h"
+#include "LuckView.h"
 #include "IFont.h"
 #include "ILocalEntity.h"
 #include "LimboView.h"
@@ -866,6 +867,7 @@ namespace spades {
 					// player is not spectator
 
 					DrawHitTestDebugger();
+					luckView->Draw();
 
 					if (p->IsAlive()) {
 						DrawJoinedAlivePlayerHUD();

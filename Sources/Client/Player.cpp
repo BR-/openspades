@@ -21,6 +21,7 @@
 
 #include "Player.h"
 
+#include "LuckView.h"
 #include "GameMap.h"
 #include "GameMapWrapper.h"
 #include "Grenade.h"
@@ -560,6 +561,86 @@ namespace spades {
 				// vanilla behavior (confirmed by measurement)
 				spread *= 0.5f;
 			}
+			
+			// accuracy check
+			bool clickedHead = false;
+			bool clickedPlayer = false;
+			int noSpreadDamage = 0;
+			if (IsLocalPlayer()) {
+				Vector3 dir = GetFront();
+				GameMap::RayCastResult mapResult;
+				mapResult = map->CastRay2(muzzle, dir, 500);
+				float hitPlayerDistance = 0.f; // disregarding Z coordinate
+				float hitPlayerActualDistance = 0.f;
+				Player *hitPlayer = NULL;
+				HitBodyPart hitPart = HitBodyPart::None;
+				for (int i = 0; i < world->GetNumPlayerSlots(); i++) {
+					Player *other = world->GetPlayer(i);
+					if (other == this || other == NULL)
+						continue;
+					if (other == this || !other->IsAlive() || other->GetTeamId() >= 2)
+						continue;
+					// quickly reject players unlikely to be hit
+					if (!other->RayCastApprox(muzzle, dir))
+						continue;
+
+					HitBoxes hb = other->GetHitBoxes();
+					Vector3 hitPos;
+
+					if (hb.head.RayCast(muzzle, dir, &hitPos)) {
+						float dist = GetHorizontalLength(hitPos - muzzle);
+						if (hitPlayer == NULL || dist < hitPlayerDistance) {
+							hitPlayer = other;
+							hitPlayerDistance = dist;
+							hitPlayerActualDistance = (hitPos - muzzle).GetLength();
+							hitPart = HitBodyPart::Head;
+						}
+					}
+					if (hb.torso.RayCast(muzzle, dir, &hitPos)) {
+						float dist = GetHorizontalLength(hitPos - muzzle);
+						if (hitPlayer == NULL || dist < hitPlayerDistance) {
+							hitPlayer = other;
+							hitPlayerDistance = dist;
+							hitPlayerActualDistance = (hitPos - muzzle).GetLength();
+							hitPart = HitBodyPart::Torso;
+						}
+					}
+					for (int j = 0; j < 3; j++) {
+						if (hb.limbs[j].RayCast(muzzle, dir, &hitPos)) {
+							float dist = GetHorizontalLength(hitPos - muzzle);
+							if (hitPlayer == NULL || dist < hitPlayerDistance) {
+								hitPlayer = other;
+								hitPlayerDistance = dist;
+								hitPlayerActualDistance = (hitPos - muzzle).GetLength();
+								switch (j) {
+								case 0: hitPart = HitBodyPart::Limb1; break;
+								case 1: hitPart = HitBodyPart::Limb2; break;
+								case 2: hitPart = HitBodyPart::Arms; break;
+								}
+							}
+						}
+					}
+				}
+				if (hitPart != HitBodyPart::None && hitPlayer != NULL && !(mapResult.hit && GetHorizontalLength(mapResult.hitPos - muzzle) < 128.f &&
+					(hitPlayer == NULL || GetHorizontalLength(mapResult.hitPos - muzzle) < hitPlayerDistance))) {
+					clickedPlayer = true;
+					HitType hitType;
+					if (hitPart == HitBodyPart::Head) {
+						hitType = HitType::HitTypeHead;
+						clickedHead = true;
+					}
+					else if (hitPart == HitBodyPart::Torso) {
+						hitType = HitType::HitTypeTorso;
+					}
+					else if (hitPart == HitBodyPart::Arms) {
+						hitType = HitType::HitTypeArms;
+					}
+					else if (hitPart == HitBodyPart::Limb1 || hitPart == HitBodyPart::Limb2) {
+						hitType = HitType::HitTypeLegs;
+					}
+					noSpreadDamage = pellets * weapon->GetDamage(hitType, hitPlayerActualDistance);
+				}
+			}
 
 			// pyspades takes destroying more than one block as a
 			// speed hack (shotgun does this)
@@ -749,6 +830,28 @@ namespace spades {
 					world->GetListener()->AddBulletTracer(this, muzzle, finalHitPos);
 
 				// one pellet done
+			}
+
+			// save spread luck info
+			if (IsLocalPlayer()) {
+				bool hitHead = false;
+				bool hitPlayer = false;
+				int actualDamage = 0;
+				for (int i = 0; i < world->GetNumPlayerSlots(); i++) {
+					Player *other = world->GetPlayer(i);
+					if (other == this || other == NULL || other->GetTeamId() >= 2)
+						continue;
+					float dist = (other->position - position).GetLength();
+					actualDamage += playerHits[i].numHeadHits * weapon->GetDamage(HitTypeHead, dist);
+					actualDamage += playerHits[i].numTorsoHits * weapon->GetDamage(HitTypeTorso, dist);
+					actualDamage += playerHits[i].numLimbHits[0] * weapon->GetDamage(HitTypeLegs, dist);
+					actualDamage += playerHits[i].numLimbHits[1] * weapon->GetDamage(HitTypeLegs, dist);
+					actualDamage += playerHits[i].numLimbHits[2] * weapon->GetDamage(HitTypeArms, dist);
+					if (playerHits[i].numHeadHits > 0) hitHead = true;
+				}
+				hitPlayer = actualDamage > 0;
+				if (LuckView::instance != NULL)
+					LuckView::instance->Add(clickedHead, clickedPlayer, hitHead, hitPlayer, noSpreadDamage, actualDamage);
 			}
 
 			// do hit test debugging

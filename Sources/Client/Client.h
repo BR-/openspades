@@ -59,6 +59,7 @@ namespace spades {
 		class CenterMessageView;
 		class Corpse;
 		class HurtRingView;
+		class LuckView;
 		class MapView;
 		class ScoreboardView;
 		class LimboView;
@@ -133,6 +134,7 @@ namespace spades {
 			// other windows
 			std::unique_ptr<CenterMessageView> centerMessageView;
 			std::unique_ptr<HurtRingView> hurtRingView;
+			std::unique_ptr<LuckView> luckView;
 			std::unique_ptr<MapView> mapView;
 			std::unique_ptr<MapView> largeMapView;
 			std::unique_ptr<ScoreboardView> scoreboard;
