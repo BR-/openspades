@@ -633,8 +633,11 @@ namespace spades {
 
 			if (debugHitTestImage) {
 				renderer->SetColorAlphaPremultiplied(MakeVector4(1, 1, 1, 1));
+				int size = (int) (renderer->ScreenHeight() * 0.4);
+				if (size > renderer->ScreenWidth() * 0.4) size = (int) (renderer->ScreenWidth() * 0.4);
+				if (size > 512) size = 512;
 				renderer->DrawImage(debugHitTestImage,
-					AABB2(renderer->ScreenWidth() - 512, renderer->ScreenHeight() - 512, 512, 512),
+					AABB2(renderer->ScreenWidth() - size, renderer->ScreenHeight() - size, size, size),
 					AABB2(128, 512 - 128, 256, 256 - 512)); // flip Y axis
 			}
 		}
