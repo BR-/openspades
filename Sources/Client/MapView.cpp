@@ -474,9 +474,9 @@ namespace spades {
 			{
 
 				IntVector3 teamColor =
-				  world->GetLocalPlayer()->GetTeamId() >= 2
+				  focusPlayerPtr->GetTeamId() >= 2
 				    ? IntVector3::Make(200, 200, 200)
-				    : world->GetTeam(world->GetLocalPlayer()->GetTeamId()).color;
+				    : world->GetTeam(focusPlayerPtr->GetTeamId()).color;
 				Vector4 teamColorF = ModifyColor(teamColor);
 				teamColorF *= alpha;
 
@@ -564,7 +564,7 @@ namespace spades {
 					if (!ctf->GetTeam(1 - tId).hasIntel) {
 						renderer->SetColorAlphaPremultiplied(teamColorF);
 						DrawIcon(team.flagPos, intelIcon, 0.f);
-					} else if (world->GetLocalPlayer()->GetTeamId() == 1 - tId) {
+					} else if (focusPlayerPtr->GetTeamId() == 1 - tId) {
 						// local player's team is carrying
 						int cId = ctf->GetTeam(1 - tId).carrier;
 
@@ -572,7 +572,7 @@ namespace spades {
 						if (cId < world->GetNumPlayerSlots()) {
 							Player *carrier = world->GetPlayer(cId);
 							if (carrier &&
-							    carrier->GetTeamId() == world->GetLocalPlayer()->GetTeamId()) {
+							    carrier->GetTeamId() == focusPlayerPtr->GetTeamId()) {
 
 								Vector4 col = teamColorF;
 								col *= fabsf(sinf(world->GetTime() * 4.f));

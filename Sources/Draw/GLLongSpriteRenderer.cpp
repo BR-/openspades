@@ -168,6 +168,8 @@ namespace spades {
 				                    Vector3::Dot(view2, def.viewAxis[1]),
 				                    Vector3::Dot(view2, def.viewAxis[2]));
 
+#undef scr1
+#undef scr2
 				// transform to screen
 				Vector2 scr1 = MakeVector2(view1.x / view1.z, view1.y / view1.z);
 				Vector2 scr2 = MakeVector2(view2.x / view2.z, view2.y / view2.z);

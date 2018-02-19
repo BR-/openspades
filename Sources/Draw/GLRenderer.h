@@ -30,6 +30,11 @@
 #include <Client/IRenderer.h>
 #include <Client/SceneDefinition.h>
 #include <Core/Math.h>
+#include <Client/Client.h>	
+#include <Client/World.h>
+
+#undef near
+#undef far
 
 namespace spades {
 	namespace draw {
@@ -134,7 +139,7 @@ namespace spades {
 
 			void RenderDebugLines();
 
-			void RenderObjects();
+			void RenderObjects(bool reflections);
 
 			void EnsureInitialized();
 			void EnsureSceneStarted();
@@ -224,6 +229,8 @@ namespace spades {
 
 			bool BoxFrustrumCull(const AABB3 &);
 			bool SphereFrustrumCull(const Vector3 &center, float radius);
+
+			Matrix4 farProjectionViewMatrix;
 		};
 	}
 }

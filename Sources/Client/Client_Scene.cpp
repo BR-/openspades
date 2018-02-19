@@ -46,6 +46,8 @@ DEFINE_SPADES_SETTING(cg_manualFocus, "0");
 DEFINE_SPADES_SETTING(cg_depthOfFieldAmount, "1");
 DEFINE_SPADES_SETTING(cg_shake, "1");
 
+SPADES_SETTING(dd_specEnhance);
+
 static float nextRandom() {
 	return spades::real_dist(spades::client::mt_engine_client);
 }

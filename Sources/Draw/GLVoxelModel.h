@@ -54,6 +54,10 @@ namespace spades {
 			GLProgram *shadowMapProgram;
 			GLImage *aoImage;
 
+			GLProgram *voxelModelOutlinesProgram;
+			GLProgram *voxelModelOccludedProgram;
+			GLProgram *voxelModelOcclusionTestProgram;
+
 			IGLDevice::UInteger buffer;
 			IGLDevice::UInteger idxBuffer;
 			std::vector<Vertex> vertices;
@@ -83,10 +87,15 @@ namespace spades {
 
 			void RenderShadowMapPass(std::vector<client::ModelRenderParam> params) override;
 
-			void RenderSunlightPass(std::vector<client::ModelRenderParam> params) override;
+			void RenderSunlightPass(std::vector<client::ModelRenderParam> params, bool farRender) override;
 
 			void RenderDynamicLightPass(std::vector<client::ModelRenderParam> params,
-			                            std::vector<GLDynamicLight> lights) override;
+			                            std::vector<GLDynamicLight> lights, bool farRender) override;
+
+			virtual void RenderOutlinesPass(std::vector<client::ModelRenderParam> params,
+				Vector3 outlineColor, bool fog, bool farRender);
+			virtual void RenderOccludedPass(std::vector<client::ModelRenderParam> params, bool farRender);
+			virtual void RenderOcclusionTestPass(std::vector<client::ModelRenderParam> params, bool farRender);
 
 			AABB3 GetBoundingBox() override { return boundingBox; }
 		};

@@ -39,6 +39,12 @@ namespace spades {
 			Vector3 customColor;
 			bool depthHack;
 
+			// PlayerID field, enemy field
+			// if -1, then the model for this param isn't a player model
+			// otherwise, it is the ID of the associated player
+			int playerID = -1;
+			bool teamId;	// team id of player (if we care about playerId)
+
 			ModelRenderParam() {
 				matrix = Matrix4::Identity();
 				customColor = MakeVector3(0, 0, 0);

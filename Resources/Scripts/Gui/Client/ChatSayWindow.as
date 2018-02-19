@@ -220,6 +220,7 @@ if (a.findFirst("secret") != b.findFirst("secret")) {
                 field.Bounds = AABB2(winX, winY, winW, 30.f);
                 field.Placeholder = _Tr("Client", "Chat Text");
                 @field.Changed = spades::ui::EventHandler(this.OnFieldChanged);
+				field.MaxLength = 93;
                 AddChild(field);
             }
             {

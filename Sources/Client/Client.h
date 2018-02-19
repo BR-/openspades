@@ -400,6 +400,8 @@ namespace spades {
 
 			void NetLog(const char *format, ...);
 
+			static Client *globalInstance; // Global instance
+
 		protected:
 			virtual ~Client();
 
@@ -482,6 +484,13 @@ namespace spades {
 			virtual void LocalPlayerCreatedLineBlock(IntVector3, IntVector3);
 			virtual void LocalPlayerHurt(HurtType type, bool sourceGiven, Vector3 source);
 			virtual void LocalPlayerBuildError(BuildFailureReason reason);
+
+			// helper functions
+			bool IsFollowing();
+			static bool IsFirstPersonSpectating();
+			static bool AreCheatsEnabled();			// 'cheats', i.e. spectator wallhack or player names
+			static bool WallhackActive();
+			static spades::Vector3 TeamCol(unsigned int teamId);
 		};
 	}
 }

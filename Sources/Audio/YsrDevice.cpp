@@ -38,6 +38,11 @@ DEFINE_SPADES_SETTING(s_ysrDriver, "YSRSpades.dll");
 DEFINE_SPADES_SETTING(s_ysrDriver, "libysrspades.so");
 #endif
 
+// s_gameVolume field (Corresponds to <Setup->Volume>) and related variables
+SPADES_SETTING(s_volume);
+extern int s_volume_previous;  // defined in ALDevice.cpp
+extern float dBPrevious;       // defined in ALDevice.cpp
+
 DEFINE_SPADES_SETTING(s_ysrNumThreads, "2");
 SPADES_SETTING(s_maxPolyphonics);
 SPADES_SETTING(s_gain);

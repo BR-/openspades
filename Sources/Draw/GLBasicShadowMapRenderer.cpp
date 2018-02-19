@@ -147,6 +147,8 @@ namespace spades {
 			float tanX = tanf(def.fovX * .5f);
 			float tanY = tanf(def.fovY * .5f);
 
+#undef near
+#undef far
 			frustrum[0] = FrustrumCoord(def, tanX, tanY, near);
 			frustrum[1] = FrustrumCoord(def, tanX, -tanY, near);
 			frustrum[2] = FrustrumCoord(def, -tanX, tanY, near);

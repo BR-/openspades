@@ -64,8 +64,23 @@ DEFINE_SPADES_SETTING(cg_skipDeadPlayersWhenDead, "1");
 
 SPADES_SETTING(cg_playerName);
 
+// Define default values for added mod settings
+DEFINE_SPADES_SETTING(dd_specNames, "1");
+DEFINE_SPADES_SETTING(dd_specEnhance, "1");
+DEFINE_SPADES_SETTING(dd_specWallhack, "0");
+DEFINE_SPADES_SETTING(cg_textures, "0");
+DEFINE_SPADES_SETTING(cg_multiTextures, "0");
+DEFINE_SPADES_SETTING(cg_outlines, "0");
+DEFINE_SPADES_SETTING(cg_textureStrength, "25");
+DEFINE_SPADES_SETTING(cg_multiTextureStrength, "25");
+DEFINE_SPADES_SETTING(cg_outlineStrength, "2");
+DEFINE_SPADES_SETTING(s_volume, "100");
+
 namespace spades {
 	namespace client {
+
+		// Define static variables for Client class
+		Client *Client::globalInstance = nullptr;
 
 		std::random_device r_device_client;
 		std::mt19937_64 mt_engine_client(
@@ -115,6 +130,8 @@ namespace spades {
 		      nextMapShotIndex(0) {
 			SPADES_MARK_FUNCTION();
 			SPLog("Initializing...");
+
+			Client::globalInstance = this;	// set global instance
 
 			renderer->SetFogDistance(128.f);
 			renderer->SetFogColor(MakeVector3(.8f, 1.f, 1.f));
@@ -207,6 +224,9 @@ namespace spades {
 			SPADES_MARK_FUNCTION();
 
 			NetLog("Disconnecting");
+
+			// Remove global instance
+			Client::globalInstance = nullptr;
 
 			DrawDisconnectScreen();
 
@@ -759,6 +779,56 @@ namespace spades {
 			} else {
 				followCameraState.enabled = true;
 			}
+		}
+
+		// helper functions
+		bool Client::IsFollowing() {
+			if (!world)
+				return false;
+			if (!world->GetLocalPlayer())
+				return false;
+			Player *p = world->GetLocalPlayer();
+			if (p->GetTeamId() >= 2)
+				return true;
+			if (p->IsAlive())
+				return false;
+			else
+				return true;
+		}
+
+		bool Client::IsFirstPersonSpectating() {
+			if (!globalInstance) {
+				return false;
+			}
+			return globalInstance->IsFollowing() && globalInstance->followCameraState.enabled && globalInstance->followCameraState.firstPerson;
+		}
+
+		bool Client::AreCheatsEnabled() {
+			if (!globalInstance)
+				return false;
+			if (!globalInstance->world)
+				return false;
+			if (!globalInstance->world->GetLocalPlayer())
+				return false;
+
+			Player *p = globalInstance->world->GetLocalPlayer();
+
+			return (p->GetTeamId() >= 2) &&		// on spectator team
+				p->IsAlive();				// alive
+		}
+
+		bool Client::WallhackActive() {
+			return AreCheatsEnabled() && dd_specWallhack;
+		}
+
+		spades::Vector3 Client::TeamCol(unsigned int teamId) {
+			if (!globalInstance) {
+				return Vector3(0, 0, 0);
+			}
+
+			spades::IntVector3 col = ((teamId == 0) ? globalInstance->world->GetTeam(0) : globalInstance->world->GetTeam(1)).color;
+
+			return Vector3(col.x / 255.0f, col.y / 255.0f, col.z / 255.0f);
 		}
 	}
 }

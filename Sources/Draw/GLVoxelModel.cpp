@@ -49,6 +49,10 @@ namespace spades {
 			shadowMapProgram = renderer->RegisterProgram("Shaders/VoxelModelShadowMap.program");
 			aoImage = (GLImage *)renderer->RegisterImage("Gfx/AmbientOcclusion.png");
 
+			voxelModelOutlinesProgram = renderer->RegisterProgram("Shaders/VoxelModelOutlines.program");
+			voxelModelOccludedProgram = renderer->RegisterProgram("Shaders/VoxelModelOccluded.program");
+			voxelModelOcclusionTestProgram = renderer->RegisterProgram("Shaders/VoxelModelOcclusionTest.program");
+
 			BuildVertices(m);
 
 			buffer = device->GenBuffer();
@@ -260,7 +264,7 @@ namespace spades {
 		void GLVoxelModel::Prerender(std::vector<client::ModelRenderParam> params) {
 			SPADES_MARK_FUNCTION();
 
-			RenderSunlightPass(params);
+			RenderSunlightPass(params, false);
 		}
 
 		void GLVoxelModel::RenderShadowMapPass(std::vector<client::ModelRenderParam> params) {
@@ -341,7 +345,7 @@ namespace spades {
 			device->BindTexture(IGLDevice::Texture2D, 0);
 		}
 
-		void GLVoxelModel::RenderSunlightPass(std::vector<client::ModelRenderParam> params) {
+		void GLVoxelModel::RenderSunlightPass(std::vector<client::ModelRenderParam> params, bool farRender) {
 			SPADES_MARK_FUNCTION();
 
 			device->ActiveTexture(0);
@@ -420,9 +424,11 @@ namespace spades {
 
 				// frustrum cull
 				float rad = radius;
-				rad *= param.matrix.GetAxis(0).GetLength();
-				if (!renderer->SphereFrustrumCull(param.matrix.GetOrigin(), rad)) {
-					continue;
+				if (!farRender) {
+					rad *= param.matrix.GetAxis(0).GetLength();
+					if (!renderer->SphereFrustrumCull(param.matrix.GetOrigin(), rad)) {
+						continue;
+					}
 				}
 
 				static GLProgramUniform customColor("customColor");
@@ -432,8 +438,8 @@ namespace spades {
 				Matrix4 modelMatrix = param.matrix;
 				static GLProgramUniform projectionViewModelMatrix("projectionViewModelMatrix");
 				projectionViewModelMatrix(program);
-				projectionViewModelMatrix.SetValue(renderer->GetProjectionViewMatrix() *
-				                                   modelMatrix);
+				projectionViewModelMatrix.SetValue((farRender ? renderer->farProjectionViewMatrix : renderer->GetProjectionViewMatrix()) *
+					modelMatrix);
 
 				static GLProgramUniform viewModelMatrix("viewModelMatrix");
 				viewModelMatrix(program);
@@ -473,7 +479,7 @@ namespace spades {
 		}
 
 		void GLVoxelModel::RenderDynamicLightPass(std::vector<client::ModelRenderParam> params,
-		                                          std::vector<GLDynamicLight> lights) {
+		                                          std::vector<GLDynamicLight> lights, bool farRender) {
 			SPADES_MARK_FUNCTION();
 
 			device->ActiveTexture(0);
@@ -533,9 +539,11 @@ namespace spades {
 
 				// frustrum cull
 				float rad = radius;
-				rad *= param.matrix.GetAxis(0).GetLength();
-				if (!renderer->SphereFrustrumCull(param.matrix.GetOrigin(), rad)) {
-					continue;
+				if (!farRender) {
+					rad *= param.matrix.GetAxis(0).GetLength();
+					if (!renderer->SphereFrustrumCull(param.matrix.GetOrigin(), rad)) {
+						continue;
+					}
 				}
 
 				static GLProgramUniform customColor("customColor");
@@ -545,8 +553,9 @@ namespace spades {
 				Matrix4 modelMatrix = param.matrix;
 				static GLProgramUniform projectionViewModelMatrix("projectionViewModelMatrix");
 				projectionViewModelMatrix(dlightProgram);
-				projectionViewModelMatrix.SetValue(renderer->GetProjectionViewMatrix() *
-				                                   modelMatrix);
+				projectionViewModelMatrix.SetValue((farRender ? renderer->farProjectionViewMatrix : renderer->GetProjectionViewMatrix()) *
+					modelMatrix);
+
 
 				static GLProgramUniform viewModelMatrix("viewModelMatrix");
 				viewModelMatrix(dlightProgram);
@@ -587,6 +596,233 @@ namespace spades {
 			device->EnableVertexAttribArray(normalAttribute(), false);
 
 			device->ActiveTexture(0);
+		}
+		void GLVoxelModel::RenderOutlinesPass(std::vector<client::ModelRenderParam> params,
+			Vector3 outlineColor, bool fog, bool farRender) {
+			SPADES_MARK_FUNCTION();
+
+			device->ActiveTexture(0);
+
+			device->Enable(IGLDevice::CullFace, true);
+			device->Enable(IGLDevice::DepthTest, true);
+
+			voxelModelOutlinesProgram->Use();
+
+			static GLProgramUniform fogColor("fogColor");
+			fogColor(voxelModelOutlinesProgram);
+			Vector3 fogCol = renderer->GetFogColorForSolidPass();
+			if (!fog) { fogCol = outlineColor; }
+			fogCol *= fogCol;
+			fogColor.SetValue(fogCol.x, fogCol.y, fogCol.z);
+
+			static GLProgramUniform outlineColorUniform("outlineColor");
+			outlineColorUniform(voxelModelOutlinesProgram);
+			outlineColor *= outlineColor;
+			outlineColorUniform.SetValue(outlineColor.x, outlineColor.y, outlineColor.z);
+
+			static GLProgramUniform modelOrigin("modelOrigin");
+			modelOrigin(voxelModelOutlinesProgram);
+			modelOrigin.SetValue(origin.x, origin.y, origin.z);
+
+			static GLProgramAttribute positionAttribute("positionAttribute");
+			positionAttribute(voxelModelOutlinesProgram);
+
+			static GLProgramUniform viewOriginVector("viewOriginVector");
+			viewOriginVector(voxelModelOutlinesProgram);
+			const auto &viewOrigin = renderer->GetSceneDef().viewOrigin;
+			viewOriginVector.SetValue(viewOrigin.x, viewOrigin.y, viewOrigin.z);
+
+			device->BindBuffer(IGLDevice::ArrayBuffer, buffer);
+			device->VertexAttribPointer(positionAttribute(),
+				4, IGLDevice::UnsignedByte,
+				false, sizeof(Vertex),
+				(void *)0);
+
+			device->BindBuffer(IGLDevice::ArrayBuffer, 0);
+			device->EnableVertexAttribArray(positionAttribute(), true);
+			device->BindBuffer(IGLDevice::ElementArrayBuffer, idxBuffer);
+
+			for (size_t i = 0; i < params.size(); i++) {
+				const client::ModelRenderParam& param = params[i];
+
+				// frustrum cull
+				if (!farRender) {
+					float rad = radius;
+					rad *= param.matrix.GetAxis(0).GetLength();
+					if (!renderer->SphereFrustrumCull(param.matrix.GetOrigin(),
+						rad)) {
+						continue;
+					}
+				}
+
+				Matrix4 modelMatrix = param.matrix;
+
+				static GLProgramUniform modelMatrixU("modelMatrix");
+				modelMatrixU(voxelModelOutlinesProgram);
+				modelMatrixU.SetValue(modelMatrix);
+
+				static GLProgramUniform projectionViewModelMatrix("projectionViewModelMatrix");
+				projectionViewModelMatrix(voxelModelOutlinesProgram);
+				const Matrix4 &pvMat = (farRender ? renderer->farProjectionViewMatrix : renderer->GetProjectionViewMatrix());
+				projectionViewModelMatrix.SetValue(pvMat * modelMatrix);
+
+				static GLProgramUniform viewModelMatrix("viewModelMatrix");
+				viewModelMatrix(voxelModelOutlinesProgram);
+				viewModelMatrix.SetValue(renderer->GetViewMatrix() * modelMatrix);
+
+				if (param.depthHack) {
+					device->DepthRange(0.f, 0.1f);
+				}
+
+				device->DrawElements(IGLDevice::Triangles,
+					numIndices,
+					IGLDevice::UnsignedInt,
+					(void *)0);
+
+				if (param.depthHack) {
+					device->DepthRange(0.f, 1.f);
+				}
+			}
+
+			device->BindBuffer(IGLDevice::ElementArrayBuffer, 0);
+			device->EnableVertexAttribArray(positionAttribute(), false);
+		}
+
+		void GLVoxelModel::RenderOccludedPass(std::vector<client::ModelRenderParam> params, bool farRender) {
+			SPADES_MARK_FUNCTION();
+
+			device->Enable(IGLDevice::CullFace, true);
+			device->Enable(IGLDevice::DepthTest, true);
+
+			voxelModelOccludedProgram->Use();
+
+			static GLProgramUniform modelOrigin("modelOrigin");
+			modelOrigin(voxelModelOccludedProgram);
+			modelOrigin.SetValue(origin.x, origin.y, origin.z);
+
+			// setup attributes
+			static GLProgramAttribute positionAttribute("positionAttribute");
+			positionAttribute(voxelModelOccludedProgram);
+
+			device->BindBuffer(IGLDevice::ArrayBuffer, buffer);
+			device->VertexAttribPointer(positionAttribute(),
+				4, IGLDevice::UnsignedByte,
+				false, sizeof(Vertex),
+				(void *)0);
+
+			device->BindBuffer(IGLDevice::ArrayBuffer, 0);
+			device->EnableVertexAttribArray(positionAttribute(), true);
+			device->BindBuffer(IGLDevice::ElementArrayBuffer, idxBuffer);
+
+			for (size_t i = 0; i < params.size(); i++) {
+				const client::ModelRenderParam& param = params[i];
+
+				// frustrum cull
+				if (!farRender) {
+					float rad = radius;
+					rad *= param.matrix.GetAxis(0).GetLength();
+					if (!renderer->SphereFrustrumCull(param.matrix.GetOrigin(),
+						rad)) {
+						continue;
+					}
+				}
+
+				Matrix4 modelMatrix = param.matrix;
+				static GLProgramUniform projectionViewModelMatrix("projectionViewModelMatrix");
+				projectionViewModelMatrix(voxelModelOccludedProgram);
+				const Matrix4 &pvMat = (farRender ? renderer->farProjectionViewMatrix : renderer->GetProjectionViewMatrix());
+				projectionViewModelMatrix.SetValue(pvMat * modelMatrix);
+
+				if (param.depthHack) {
+					device->DepthRange(0.f, 0.1f);
+				}
+
+				device->DrawElements(IGLDevice::Triangles,
+					numIndices,
+					IGLDevice::UnsignedInt,
+					(void *)0);
+				if (param.depthHack) {
+					device->DepthRange(0.f, 1.f);
+				}
+
+			}
+
+			device->BindBuffer(IGLDevice::ElementArrayBuffer, 0);
+			device->EnableVertexAttribArray(positionAttribute(), false);
+		}
+
+		void GLVoxelModel::RenderOcclusionTestPass(std::vector<client::ModelRenderParam> params, bool farRender) {
+			SPADES_MARK_FUNCTION();
+
+			device->Enable(IGLDevice::CullFace, true);
+			device->Enable(IGLDevice::DepthTest, true);
+
+			voxelModelOcclusionTestProgram->Use();
+
+			static GLProgramUniform modelOrigin("modelOrigin");
+			modelOrigin(voxelModelOcclusionTestProgram);
+			modelOrigin.SetValue(origin.x, origin.y, origin.z);
+
+			// setup attributes
+			static GLProgramAttribute positionAttribute("positionAttribute");
+			positionAttribute(voxelModelOcclusionTestProgram);
+
+			static GLProgramUniform viewOriginVector("viewOriginVector");
+			viewOriginVector(voxelModelOcclusionTestProgram);
+			const auto &viewOrigin = renderer->GetSceneDef().viewOrigin;
+			viewOriginVector.SetValue(viewOrigin.x, viewOrigin.y, viewOrigin.z);
+
+			device->BindBuffer(IGLDevice::ArrayBuffer, buffer);
+			device->VertexAttribPointer(positionAttribute(),
+				4, IGLDevice::UnsignedByte,
+				false, sizeof(Vertex),
+				(void *)0);
+
+			device->BindBuffer(IGLDevice::ArrayBuffer, 0);
+			device->EnableVertexAttribArray(positionAttribute(), true);
+			device->BindBuffer(IGLDevice::ElementArrayBuffer, idxBuffer);
+
+			for (size_t i = 0; i < params.size(); i++) {
+				const client::ModelRenderParam& param = params[i];
+
+				// frustrum cull
+				if (!farRender) {
+					float rad = radius;
+					rad *= param.matrix.GetAxis(0).GetLength();
+					if (!renderer->SphereFrustrumCull(param.matrix.GetOrigin(),
+						rad)) {
+						continue;
+					}
+				}
+
+
+				Matrix4 modelMatrix = param.matrix;
+
+				static GLProgramUniform modelMatrixU("modelMatrix");
+				modelMatrixU(voxelModelOcclusionTestProgram);
+				modelMatrixU.SetValue(modelMatrix);
+
+				static GLProgramUniform projectionViewModelMatrix("projectionViewModelMatrix");
+				projectionViewModelMatrix(voxelModelOcclusionTestProgram);
+				const Matrix4 &pvMat = (farRender ? renderer->farProjectionViewMatrix : renderer->GetProjectionViewMatrix());
+				projectionViewModelMatrix.SetValue(pvMat * modelMatrix);
+
+				if (param.depthHack) {
+					device->DepthRange(0.f, 0.1f);
+				}
+
+				device->DrawElements(IGLDevice::Triangles,
+					numIndices,
+					IGLDevice::UnsignedInt,
+					(void *)0);
+				if (param.depthHack) {
+					device->DepthRange(0.f, 1.f);
+				}
+
+			}
+
+			device->BindBuffer(IGLDevice::ElementArrayBuffer, 0);
+			device->EnableVertexAttribArray(positionAttribute(), false);
 		}
 	}
 }
