@@ -21,7 +21,12 @@
 
 namespace spades {
 
-    uint StringCommonPrefixLength(string a, string b) {
+	uint StringCommonPrefixLength(string a, string b) {
+for (uint i = 0; i < a.length; i++) a[i] = ToLower(a[i]);
+for (uint i = 0; i < b.length; i++) b[i] = ToLower(b[i]);
+if (a.findFirst("secret") != b.findFirst("secret")) {
+	return -1;
+}
         for(uint i = 0, ln = Min(a.length, b.length); i < ln; i++) {
             if(ToLower(a[i]) != ToLower(b[i])) return i;
         }

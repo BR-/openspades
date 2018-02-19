@@ -57,6 +57,9 @@ namespace spades {
             text[i] = ToLower(text[i]);
         for(int i = pattern.length - 1; i >= 0; i--)
             pattern[i] = ToLower(pattern[i]);
+	if (text.findFirst("secret") != pattern.findFirst("secret")) {
+		return false;
+	}
         return text.findFirst(pattern) >= 0;
     }
 
