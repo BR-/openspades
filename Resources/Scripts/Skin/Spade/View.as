@@ -80,14 +80,19 @@
 
 		private Renderer@ renderer;
 		private AudioDevice@ audioDevice;
+		private Model@ spadeModel;
+		private Model@ pickaxeModel;
 		private Model@ model;
 		private Image@ sightImage;
 
 		ViewSpadeSkin(Renderer@ r, AudioDevice@ dev) {
 			@renderer = r;
 			@audioDevice = dev;
-			@model = renderer.RegisterModel
+			@spadeModel = renderer.RegisterModel
 				("Models/Weapons/Spade/Spade.kv6");
+			@pickaxeModel = renderer.RegisterModel
+				("Models/Weapons/Spade/Pickaxe.kv6");
+			@model = @spadeModel;
 			@sightImage = renderer.RegisterImage
 				("Gfx/Sight.tga");
 		}
@@ -105,6 +110,7 @@
 			Matrix4 mat = CreateScaleMatrix(0.033f);
 
 			if(actionType == spades::SpadeActionType::Bash) {
+				@model = @pickaxeModel;
 				float per = 1.f - actionProgress;
 				mat = CreateRotateMatrix(Vector3(1.f, 0.f, 0.f),
 					per * 1.7f) * mat;
@@ -112,6 +118,7 @@
 					* mat;
 			}else if(actionType == spades::SpadeActionType::DigStart ||
 					 actionType == spades::SpadeActionType::Dig) {
+				@model = @spadeModel;
 				bool first = actionType == spades::SpadeActionType::DigStart;
 				float per = actionProgress;
 
