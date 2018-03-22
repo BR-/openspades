@@ -26,10 +26,7 @@ namespace spades {
 		void send(std::string message);
 
 	private:
-		void userList(IRCMessage msg, IRCClient* client);
 		void userListEnd(IRCMessage msg, IRCClient* client);
-		void join(IRCMessage msg, IRCClient* client);
-		void part(IRCMessage msg, IRCClient* client);
 		void privmsg(IRCMessage msg, IRCClient* client);
 	};
 };

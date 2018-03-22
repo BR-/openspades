@@ -20,44 +20,10 @@ DEFINE_SPADES_SETTING(cl_twitchNick, "");
 DEFINE_SPADES_SETTING(secret_twitchAuth, "");
 
 namespace spades {
-	std::vector<std::string> initialUserList;
-
-	void TwitchLink::userList(IRCMessage msg, IRCClient* client) {
-		std::string nicks = msg.parameters.at(3);
-		std::string nick;
-		std::stringstream ss(nicks);
-		while (ss >> nick)
-			initialUserList.push_back(nick);
-	}
 	void TwitchLink::userListEnd(IRCMessage msg, IRCClient* client) {
-		std::string outmsg;
-		if (initialUserList.size() > 10) {
-			outmsg = "Connected! " + initialUserList.size() + std::string(" people in chat!");
-		}
-		else if (initialUserList.size() == 0) {
-			outmsg = "Connected! Nobody watching :(";
-		}
-		else {
-			std::stringstream ss;
-			ss << "Connected! Hello to: ";
-			bool first = true;
-			for (auto it = initialUserList.begin(); it != initialUserList.end(); ++it) {
-				if (!first)
-					ss << ", ";
-				ss << *it;
-			}
-			outmsg = ss.str();
-		}
-		initialUserList.clear();
-		chatClient->TwitchSentMessage(outmsg);
+		chatClient->TwitchSentMessage("Connected!");
 	}
-	void TwitchLink::join(IRCMessage msg, IRCClient* client) {
-		chatClient->TwitchSentMessage("Welcome to the stream, " + msg.prefix.nick);
-		
-	}
-	void TwitchLink::part(IRCMessage msg, IRCClient* client) {
-		chatClient->TwitchSentMessage("Goodbye, " + msg.prefix.nick);
-	}
+
 	void TwitchLink::privmsg(IRCMessage msg, IRCClient* client) {
 		if (msg.parameters.at(1) == "!server") {
 			std::stringstream ss;
@@ -80,10 +46,7 @@ namespace spades {
 
 	TwitchLink::TwitchLink(spades::client::Client *chatClient) : chatClient(chatClient) {
 		client.Debug = true;
-		client.HookIRCCommand(353, std::bind(&TwitchLink::userList, this, std::placeholders::_1, std::placeholders::_2));
 		client.HookIRCCommand(366, std::bind(&TwitchLink::userListEnd, this, std::placeholders::_1, std::placeholders::_2));
-		client.HookIRCCommand("JOIN", std::bind(&TwitchLink::join, this, std::placeholders::_1, std::placeholders::_2));
-		client.HookIRCCommand("PART", std::bind(&TwitchLink::part, this, std::placeholders::_1, std::placeholders::_2));
 		client.HookIRCCommand("PRIVMSG", std::bind(&TwitchLink::privmsg, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
@@ -94,18 +57,14 @@ namespace spades {
 	bool TwitchLink::init() {
 		if ((int)cl_twitchEnabled && !client.Connected()) {
 			// connect irc.chat.twitch.tv:6667
-			// CAP REQ :twitch.tv/membership
 			// PASS cl_twitchAuth
 			// NICK cl_twitchNick
 			// JOIN #cl_twitchNick
-
-			// 353 <user> = #<channel> :<user1> <user2> <user3>
-			// 353 <user> = #<channel> :<user4> <user5> <userN>
+			// ...
 			// 366 <user> #<channel> End of /NAMES list
 
 			if (client.InitSocket() && client.Connect("irc.chat.twitch.tv", 6667)) {
-				if (client.SendIRC("CAP REQ :twitch.tv/membership") &&
-					client.SendIRC("PASS " + (std::string)secret_twitchAuth) &&
+				if (client.SendIRC("PASS " + (std::string)secret_twitchAuth) &&
 					client.SendIRC("NICK " + (std::string)cl_twitchNick) &&
 					client.SendIRC("JOIN #" + (std::string)cl_twitchNick)) {
 					failed = false;
