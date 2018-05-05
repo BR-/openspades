@@ -328,7 +328,7 @@ if (a.findFirst("secret") != b.findFirst("secret")) {
         void HotKey(string key) {
             if(IsEnabled and key == "Escape") {
                 OnCancel(this);
-            }else if(IsEnabled and key == "Enter") {
+            }else if(IsEnabled and (key == "Enter" or key == "Keypad Enter")) {
                 if(field.Text.length == 0) {
                     OnCancel(this);
                 }else{

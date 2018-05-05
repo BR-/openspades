@@ -287,32 +287,69 @@ namespace spades {
                 }else if(key == "Delete") {
                     Delete();
                 }else if(key == "Left") {
+					int cIdx = GetCharIndexForString(Text, CursorPosition);
+					if (Manager.IsControlPressed) {
+						do {
+							cIdx -= 1;
+						} while (cIdx > 0 && Text[cIdx] == 0x20);
+						if (cIdx > 0) {
+							do {
+								cIdx -= 1;
+							} while (cIdx > 0 && Text[cIdx] != 0x20);
+							if (Text[cIdx] == 0x20) {
+								cIdx++;
+							}
+						}
+					}else {
+						cIdx -= 1;
+					}
                     if(Manager.IsShiftPressed) {
-                        int cIdx = GetCharIndexForString(Text, CursorPosition);
-                        CursorPosition = ClampCursorPosition(GetByteIndexForString(Text, cIdx - 1));
+                        CursorPosition = ClampCursorPosition(GetByteIndexForString(Text, cIdx));
                     }else {
                         if(SelectionLength == 0) {
-                            int cIdx = GetCharIndexForString(Text, CursorPosition);
-                            Select(GetByteIndexForString(Text, cIdx - 1));
+                            Select(GetByteIndexForString(Text, cIdx));
                         } else {
                             Select(SelectionStart);
                         }
                     }
                     return;
                 }else if(key == "Right") {
+					int cIdx = GetCharIndexForString(Text, CursorPosition);
+					if (Manager.IsControlPressed) {
+						do {
+							cIdx += 1;
+						} while (cIdx < Text.length && Text[cIdx] != 0x20);
+						if (cIdx < Text.length) {
+							do {
+								cIdx += 1;
+							} while (cIdx < Text.length && Text[cIdx] == 0x20);
+						}
+					}else {
+						cIdx += 1;
+					}
                     if(Manager.IsShiftPressed) {
-                        int cIdx = GetCharIndexForString(Text, CursorPosition);
-                        CursorPosition = ClampCursorPosition(GetByteIndexForString(Text, cIdx + 1));
+                        CursorPosition = ClampCursorPosition(GetByteIndexForString(Text, cIdx));
                     }else {
                         if(SelectionLength == 0) {
-                            int cIdx = GetCharIndexForString(Text, CursorPosition);
-                            Select(GetByteIndexForString(Text, cIdx + 1));
+                            Select(GetByteIndexForString(Text, cIdx));
                         } else {
                             Select(SelectionEnd);
                         }
                     }
                     return;
-                }
+				}else if (key == "Home") {
+					if(Manager.IsShiftPressed) {
+						CursorPosition = 0;
+					}else {
+						Select(0);
+					}
+				}else if (key == "End") {
+					if (Manager.IsShiftPressed) {
+						Select(MarkPosition, 99999);
+					}else {
+						Select(99999);
+					}
+				}
                 if(Manager.IsControlPressed or
                    Manager.IsMetaPressed /* for OSX; Cmd + [a-z] */) {
                     if(key == "A") {
