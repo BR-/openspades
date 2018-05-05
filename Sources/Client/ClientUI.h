@@ -85,6 +85,7 @@ namespace spades {
 			void EnterTeamChatWindow();
 			void EnterTwitchChatWindow();
 			void EnterCommandWindow();
+			void EnterChatLogWindow();
 			void CloseUI();
 
 			// lm: so the chat does not have the initial chat key

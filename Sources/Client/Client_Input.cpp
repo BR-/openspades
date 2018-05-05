@@ -70,6 +70,7 @@ DEFINE_SPADES_SETTING(cg_keyCaptureColor, "e");
 DEFINE_SPADES_SETTING(cg_keyGlobalChat, "t");
 DEFINE_SPADES_SETTING(cg_keyTeamChat, "y");
 DEFINE_SPADES_SETTING(cg_keyTwitchChat, "u");
+DEFINE_SPADES_SETTING(cg_keyChatLog, "k");
 DEFINE_SPADES_SETTING(cg_keyChangeMapScale, "m");
 DEFINE_SPADES_SETTING(cg_keyToggleMapZoom, "n");
 DEFINE_SPADES_SETTING(cg_keyScoreboard, "Tab");
@@ -543,6 +544,10 @@ namespace spades {
 					else if (CheckKey(cg_keyTwitchChat, name) && down) {
 						// team chat
 						scriptedUI->EnterTwitchChatWindow();
+						scriptedUI->setIgnored(name);
+					}
+					else if (CheckKey(cg_keyChatLog, name) && down) {
+						scriptedUI->EnterChatLogWindow();
 						scriptedUI->setIgnored(name);
 					} else if (name == "/" && down) {
 						// command

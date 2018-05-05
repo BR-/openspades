@@ -152,6 +152,10 @@ namespace spades {
             @ActiveUI = wnd;
             @manager.ActiveElement = wnd.field;
         }
+		void EnterChatLogWindow() {
+			@ActiveUI = @chatLogWindow;
+			chatLogWindow.ScrollToEnd();
+		}
         void CloseUI() {
             @ActiveUI = null;
         }
