@@ -1086,13 +1086,14 @@ namespace spades {
 			}
 
 			float vel;
+			bool shotgun = false;
 			switch (player->GetWeapon()->GetWeaponType()) {
 				case RIFLE_WEAPON: vel = 700.f; break;
 				case SMG_WEAPON: vel = 360.f; break;
-				case SHOTGUN_WEAPON: return;
+				case SHOTGUN_WEAPON: vel = 550.f; shotgun = true;  break;
 			}
-			AddLocalEntity(new Tracer(this, muzzlePos, hitPos, vel));
-			AddLocalEntity(new MapViewTracer(muzzlePos, hitPos, vel));
+			AddLocalEntity(new Tracer(this, muzzlePos, hitPos, vel, shotgun));
+			AddLocalEntity(new MapViewTracer(muzzlePos, hitPos, vel, shotgun));
 		}
 
 		void Client::BlocksFell(std::vector<IntVector3> blocks) {

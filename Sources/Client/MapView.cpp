@@ -641,15 +641,21 @@ namespace spades {
 					                            line3.first + normal * tracerWidth,
 					                            line3.second - normal * tracerWidth};
 
-					renderer->SetColorAlphaPremultiplied(Vector4{1.0f, 0.8f, 0.6f, 1.0f} * alpha);
+					Vector4 col;
+					if (tracer->shotgun) {
+						col = { 0.0f, 0.0f, 0.0f, 1.0f };
+					} else {
+						col = { 1.0f, 0.8f, 0.6f, 1.0f };
+					}
+					renderer->SetColorAlphaPremultiplied(col * alpha);
 					renderer->DrawImage(tracerImage, vertices[0], vertices[1], vertices[2],
 					                    tracerInRect);
 				}
 			}
 		}
 
-		MapViewTracer::MapViewTracer(Vector3 p1, Vector3 p2, float bulletVel)
-		    : startPos(p1), velocity(bulletVel) {
+		MapViewTracer::MapViewTracer(Vector3 p1, Vector3 p2, float bulletVel, bool shotgun)
+		    : startPos(p1), velocity(bulletVel), shotgun(shotgun) {
 			// Z coordinate doesn't matter in MapView
 			p1.z = 0.0f;
 			p2.z = 0.0f;
