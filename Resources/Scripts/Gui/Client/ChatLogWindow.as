@@ -194,11 +194,13 @@ namespace spades {
                 UIElement::HotKey(key);
                 return;
             }
-            if(IsEnabled and (key == "Escape")) {
+            if (IsEnabled and (key == "Escape" or key == "K")) {
                 Close();
-            } else if(IsEnabled and (key == "y")) {
+            } else if(IsEnabled and (key == "U")) {
+                OnTwitchChat(this);
+            } else if(IsEnabled and (key == "Y")) {
                 OnTeamChat(this);
-            } else if(IsEnabled and (key == "t")) {
+            } else if(IsEnabled and (key == "T")) {
                 OnGlobalChat(this);
             } else {
                 UIElement::HotKey(key);
