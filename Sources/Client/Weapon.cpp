@@ -182,7 +182,6 @@ namespace spades {
 			if (initial)
 				slowReloadLeftCount = stock - std::max(0, stock - GetClipSize() + ammo);
 			reloading = true;
-			shooting = false;
 			reloadStartTime = time;
 			reloadEndTime = time + GetReloadTime();
 
