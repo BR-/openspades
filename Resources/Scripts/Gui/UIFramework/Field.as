@@ -241,6 +241,14 @@ namespace spades {
             void BackSpace() {
                 if(SelectionLength > 0) {
                     SelectedText = "";
+                } else if (Manager.IsControlPressed) {
+                    bool saved = Manager.IsShiftPressed;
+                    Manager.IsShiftPressed = true;
+                    KeyDown("Left");
+                    Manager.IsShiftPressed = saved;
+                    if (SelectionLength > 0) {
+                        SelectedText = "";
+                    }
                 } else {
                     int pos = CursorPosition;
                     int cIdx = GetCharIndexForString(Text, CursorPosition);
@@ -254,6 +262,14 @@ namespace spades {
             void Delete() {
                 if(SelectionLength > 0) {
                     SelectedText = "";
+                } else if (Manager.IsControlPressed) {
+                    bool saved = Manager.IsShiftPressed;
+                    Manager.IsShiftPressed = true;
+                    KeyDown("Right");
+                    Manager.IsShiftPressed = saved;
+                    if (SelectionLength > 0) {
+                        SelectedText = "";
+                    }
                 } else if(CursorPosition < int(Text.length)) {
                     int pos = CursorPosition;
                     int cIdx = GetCharIndexForString(Text, CursorPosition);
