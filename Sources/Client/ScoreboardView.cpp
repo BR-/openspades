@@ -284,6 +284,8 @@ namespace spades {
 				Vector4 color = white;
 				if (ent.id == world->GetLocalPlayerIndex())
 					color = GetTeamColor(team);
+				if (!ent.alive) // darken the names of dead players
+					color *= gray;
 
 				sprintf(buf, "#%d", ent.id); // FIXME: 1-base?
 				size = font->Measure(buf);
@@ -297,8 +299,6 @@ namespace spades {
 				} else {
 					font->Draw(buf, MakeVector2(colX + 35.f - size.x, rowY), 1.f, white);
 				}
-
-				color = ent.alive ? white : gray;
 
 				font->Draw(ent.name, MakeVector2(colX + 45.f, rowY), 1.f, color);
 
