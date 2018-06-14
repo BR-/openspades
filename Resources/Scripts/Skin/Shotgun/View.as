@@ -137,7 +137,7 @@
 		}
 
 		void AddToScene() {
-			if (AimDownSightStateSmooth > 0.99) {
+			if (cg_pngScope.BoolValue && AimDownSightStateSmooth > 0.99) {
 				return;
 			}
 

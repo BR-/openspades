@@ -144,6 +144,7 @@ namespace spades {
 
 		protected Renderer@ renderer;
 		protected Image@ sightImage;
+		protected ConfigItem cg_pngScope("cg_pngScope", "1");
 
 		BasicViewWeapon(Renderer@ renderer) {
 			@this.renderer = renderer;

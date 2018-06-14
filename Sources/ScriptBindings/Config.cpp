@@ -219,6 +219,11 @@ namespace spades {
 												  asCALL_THISCALL);
 					manager->CheckError(r);
 					r = eng->RegisterObjectMethod("ConfigItem",
+												  "bool get_BoolValue()",
+												  asMETHOD(ConfigItem, GetBoolValue),
+												  asCALL_THISCALL);
+					manager->CheckError(r);
+					r = eng->RegisterObjectMethod("ConfigItem",
 												  "float get_FloatValue()",
 												  asMETHOD(ConfigItem, GetFloatValue),
 												  asCALL_THISCALL);
