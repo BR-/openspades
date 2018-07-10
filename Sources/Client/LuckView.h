@@ -18,7 +18,11 @@ namespace spades {
 			~LuckView();
 
 			void ClearAll();
+			
 			void Add(bool clickedHead, bool clickedPlayer, bool hitHead, bool hitPlayer, int nospreadDamage, int actualDamage);
+			
+			void Ratio_Kill();
+			void Ratio_Death();
 
 			void Draw();
 
@@ -34,6 +38,12 @@ namespace spades {
 			int shotsCount = 0;
 			int totalActualDamage = 0;
 			int totalNospreadDamage = 0;
+
+			int ratioKills = 0;
+			int ratioDeaths = 0;
+			int streakCurrent = 0;
+			int streakLast = 0;
+			int streakBest = 0;
 		};
 	}
 }

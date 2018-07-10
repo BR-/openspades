@@ -59,6 +59,9 @@ namespace spades {
 			SPLog("shotsCount = %d", shotsCount);
 			SPLog("totalActualDamage = %d", totalActualDamage);
 			SPLog("totalNospreadDamage = %d", totalNospreadDamage);
+			SPLog("ratioKills = %d", ratioKills);
+			SPLog("ratioDeaths = %d", ratioDeaths);
+			SPLog("streakBest = %d", streakBest);
 			SPLog("------------------------");
 		}
 
@@ -72,6 +75,11 @@ namespace spades {
 			shotsCount = 0;
 			totalActualDamage = 0;
 			totalNospreadDamage = 0;
+			ratioKills = 0;
+			ratioDeaths = 0;
+			streakCurrent = 0;
+			streakLast = 0;
+			streakBest = 0;
 		}
 
 		void LuckView::Add(bool clickedHead, bool clickedPlayer, bool hitHead, bool hitPlayer, int nospreadDamage, int actualDamage) {
@@ -87,6 +95,20 @@ namespace spades {
 			// should calculate expectation in? e.g. 33% chance of headshot at fogrange so nospread /= 3
 			// shotgun pellets separate?
 			// divide luck by shots? divide actual by nospread?
+		}
+
+		// should not be called for suicides
+		void LuckView::Ratio_Kill() {
+			ratioKills++;
+			streakCurrent++;
+		}
+		void LuckView::Ratio_Death() {
+			ratioDeaths++;
+			streakLast = streakCurrent;
+			if (streakCurrent > streakBest) {
+				streakBest = streakCurrent;
+			}
+			streakCurrent = 0;
 		}
 
 		void LuckView::Draw() {
@@ -110,7 +132,13 @@ namespace spades {
 			T("True Accuracy: %d%%", (100 * clicksHead) / sc);
 			T("Spread Accuracy: %d%%", (100 * hitsHead) / sc);
 			lineno++;
-			T("Luck: %d", totalActualDamage - totalNospreadDamage);
+			//T("Luck: %d", totalActualDamage - totalNospreadDamage);
+			//lineno++;
+			T("Ratio: %d / %d = %.1f", ratioKills, ratioDeaths, ratioKills/(float)(ratioDeaths?ratioDeaths:1));
+			lineno++;
+			T("Streak: %d", streakCurrent);
+			T("Last Streak: %d", streakLast);
+			T("Best Streak: %d", streakBest);
 			/*
 			T("[Percents]");
 			T("True Accuracy: 100%");

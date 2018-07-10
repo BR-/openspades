@@ -37,6 +37,7 @@
 #include "HurtRingView.h"
 #include "ILocalEntity.h"
 #include "LimboView.h"
+#include "LuckView.h"
 #include "MapView.h"
 #include "PaletteView.h"
 #include "Tracer.h"
@@ -773,6 +774,12 @@ namespace spades {
 
 		void Client::PlayerKilledPlayer(spades::client::Player *killer,
 		                                spades::client::Player *victim, KillType kt) {
+			if (killer == world->GetLocalPlayer() && victim != world->GetLocalPlayer()) {
+				luckView->Ratio_Kill();
+			}
+			if (killer != world->GetLocalPlayer() && victim == world->GetLocalPlayer()) {
+				luckView->Ratio_Death();
+			}
 			// play hit sound
 			if (kt == KillTypeWeapon || kt == KillTypeHeadshot) {
 				// don't play on local: see BullethitPlayer
