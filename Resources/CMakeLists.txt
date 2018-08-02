@@ -31,7 +31,7 @@ if(OPENSPADES_RESOURCES)
 			add_custom_command(
 				TARGET OpenSpades_Resources
 				COMMAND powershell -ExecutionPolicy Bypass ${CMAKE_CURRENT_SOURCE_DIR}/mkpak.ps1
-					${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/Resources
+					${CMAKE_BINARY_DIR}/bin/Resources
 				WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 		else()
 			add_custom_command(
