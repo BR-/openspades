@@ -46,8 +46,8 @@ namespace spades {
         ChatLogSayWindow@ sayWindow;
 
         private spades::ui::UIElement@ sayButton1;
-		private spades::ui::UIElement@ sayButton2;
-		private spades::ui::UIElement@ sayButton3;
+        private spades::ui::UIElement@ sayButton2;
+        private spades::ui::UIElement@ sayButton3;
 
         ChatLogWindow(ClientUI@ ui) {
             super(ui.manager);
@@ -94,28 +94,28 @@ namespace spades {
                 AddChild(button);
                 @this.sayButton1 = button;
             }
-			{
-				spades::ui::Button button(Manager);
-				button.Caption = _Tr("Client", "Say Team");
-				button.Bounds = AABB2(
-					contentsLeft + 155.f,
-					contentsTop + contentsHeight - 30.f
-					, 150.f, 30.f);
-				@button.Activated = spades::ui::EventHandler(this.OnTeamChat);
-				AddChild(button);
-				@this.sayButton2 = button;
-			}
-			{
-				spades::ui::Button button(Manager);
-				button.Caption = _Tr("Client", "Say Twitch");
-				button.Bounds = AABB2(
-					contentsLeft + 310.f,
-					contentsTop + contentsHeight - 30.f
-					, 150.f, 30.f);
-				@button.Activated = spades::ui::EventHandler(this.OnTwitchChat);
-				AddChild(button);
-				@this.sayButton3 = button;
-			}
+            {
+                spades::ui::Button button(Manager);
+                button.Caption = _Tr("Client", "Say Team");
+                button.Bounds = AABB2(
+                    contentsLeft + 155.f,
+                    contentsTop + contentsHeight - 30.f
+                    , 150.f, 30.f);
+                @button.Activated = spades::ui::EventHandler(this.OnTeamChat);
+                AddChild(button);
+                @this.sayButton2 = button;
+            }
+            {
+                spades::ui::Button button(Manager);
+                button.Caption = _Tr("Client", "Say Twitch");
+                button.Bounds = AABB2(
+                    contentsLeft + 310.f,
+                    contentsTop + contentsHeight - 30.f
+                    , 150.f, 30.f);
+                @button.Activated = spades::ui::EventHandler(this.OnTwitchChat);
+                AddChild(button);
+                @this.sayButton3 = button;
+            }
             {
                 spades::ui::TextViewer viewer(Manager);
                 AddChild(viewer);
@@ -136,43 +136,61 @@ namespace spades {
         void SayWindowClosed() {
             @sayWindow = null;
             sayButton1.Enable = true;
-			sayButton2.Enable = true;
-			sayButton3.Enable = true;
+            sayButton2.Enable = true;
+            sayButton3.Enable = true;
         }
 
         private void OnOkPressed(spades::ui::UIElement@ sender) {
             Close();
         }
 
-		private void OnTwitchChat(spades::ui::UIElement@ sender) {
-			if (sayWindow !is null) {
-				sayWindow.SetType(spades::ChatType::twitch);
-				return;
-			}
-			sayButton1.Enable = false;
-			sayButton2.Enable = false;
-			sayButton3.Enable = false;
-			ChatLogSayWindow wnd(this, spades::ChatType::twitch);
-			AddChild(wnd);
-			wnd.Bounds = this.Bounds;
-			@this.sayWindow = wnd;
-			@Manager.ActiveElement = wnd.field;
-		}
+        private void OnTwitchChat(spades::ui::UIElement@ sender) {
+            if (sayWindow !is null) {
+                sayWindow.SetType(spades::ChatType::twitch);
+                return;
+            }
+            sayButton1.Enable = false;
+            sayButton2.Enable = false;
+            sayButton3.Enable = false;
+            ChatLogSayWindow wnd(this, spades::ChatType::twitch);
+            AddChild(wnd);
+            wnd.Bounds = this.Bounds;
+            @this.sayWindow = wnd;
+            @Manager.ActiveElement = wnd.field;
+        }
 
-		private void OnTeamChat(spades::ui::UIElement@ sender) {
-			if (sayWindow !is null) {
-				sayWindow.SetType(spades::ChatType::team);
-				return;
-			}
-			sayButton1.Enable = false;
-			sayButton2.Enable = false;
-			sayButton3.Enable = false;
-			ChatLogSayWindow wnd(this, spades::ChatType::team);
-			AddChild(wnd);
-			wnd.Bounds = this.Bounds;
-			@this.sayWindow = wnd;
-			@Manager.ActiveElement = wnd.field;
-		}
+        private void OnTeamChat(spades::ui::UIElement@ sender) {
+            if (sayWindow !is null) {
+                sayWindow.SetType(spades::ChatType::team);
+                return;
+            }
+            sayButton1.Enable = false;
+            sayButton2.Enable = false;
+            sayButton3.Enable = false;
+            ChatLogSayWindow wnd(this, spades::ChatType::team);
+            AddChild(wnd);
+            wnd.Bounds = this.Bounds;
+            @this.sayWindow = wnd;
+            @Manager.ActiveElement = wnd.field;
+        }
+
+        private void OnCommandChat(spades::ui::UIElement@ sender) {
+            if (sayWindow !is null) {
+                sayWindow.SetType(spades::ChatType::team);
+                return;
+            }
+            sayButton1.Enable = false;
+            sayButton2.Enable = false;
+            sayButton3.Enable = false;
+            ChatLogSayWindow wnd(this, spades::ChatType::team);
+            wnd.field.Text = "/";
+            wnd.field.Select(1, 0);
+            wnd.UpdateState();
+            AddChild(wnd);
+            wnd.Bounds = this.Bounds;
+            @this.sayWindow = wnd;
+            @Manager.ActiveElement = wnd.field;
+        }
 
         private void OnGlobalChat(spades::ui::UIElement@ sender) {
             if(sayWindow !is null) {
@@ -180,8 +198,8 @@ namespace spades {
                 return;
             }
             sayButton1.Enable = false;
-			sayButton2.Enable = false;
-			sayButton3.Enable = false;
+            sayButton2.Enable = false;
+            sayButton3.Enable = false;
             ChatLogSayWindow wnd(this, spades::ChatType::global);
             AddChild(wnd);
             wnd.Bounds = this.Bounds;
@@ -202,6 +220,8 @@ namespace spades {
                 OnTeamChat(this);
             } else if(IsEnabled and (key == "T")) {
                 OnGlobalChat(this);
+            } else if(IsEnabled and (key == "/")) {
+                OnCommandChat(this);
             } else {
                 UIElement::HotKey(key);
             }
