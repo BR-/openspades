@@ -557,9 +557,8 @@ namespace spades {
 			float spread = weapon->GetSpread();
 			GameMap *map = world->GetMap();
 
-			if (weapInput.secondary) {
-				// vanilla behavior (confirmed by measurement)
-				spread *= 0.5f;
+			if (!weapInput.secondary) {
+				spread *= 2;
 			}
 			
 			// accuracy check
