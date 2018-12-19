@@ -53,6 +53,7 @@ namespace spades {
 		void Client::LocalPlayerCreated() {
 			freeCameraState.position = world->GetLocalPlayer()->GetEye();
 			weapInput = WeaponInput();
+			playerInput.jump = false;
 
 			toolRaiseState = .0f;
 		}
