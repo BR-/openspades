@@ -220,6 +220,17 @@ namespace spades {
 			c.ExecuteChecked();
 		}
 
+		void StartupScreen::RunFrameLate(float dt) {
+			SPADES_MARK_FUNCTION();
+
+			ScopedPrivilegeEscalation privilege;
+			static ScriptFunction func("StartupScreenUI", "void RunFrameLate(float)");
+			ScriptContextHandle c = func.Prepare();
+			c->SetObject(&*ui);
+			c->SetArgFloat(0, dt);
+			c.ExecuteChecked();
+		}
+
 		void StartupScreen::DoInit() {
 			SPADES_MARK_FUNCTION();
 
@@ -265,11 +276,11 @@ namespace spades {
 				StartupScreenHelper *helper;
 
 			protected:
-				virtual auto GetRendererType() -> RendererType { return RendererType::SW; }
-				virtual client::IAudioDevice *CreateAudioDevice() {
+				auto GetRendererType() -> RendererType override { return RendererType::SW; }
+				client::IAudioDevice *CreateAudioDevice() override {
 					return new audio::NullDevice();
 				}
-				virtual View *CreateView(client::IRenderer *renderer, client::IAudioDevice *dev) {
+				View *CreateView(client::IRenderer *renderer, client::IAudioDevice *dev) override {
 					Handle<client::FontManager> fontManager(new client::FontManager(renderer),
 					                                        false);
 					view.Set(new StartupScreen(renderer, dev, helper, fontManager), true);

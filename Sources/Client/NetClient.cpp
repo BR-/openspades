@@ -28,6 +28,7 @@
 #include "CTFGameMode.h"
 #include "Client.h"
 #include "GameMap.h"
+#include "GameMapLoader.h"
 #include "Grenade.h"
 #include "NetClient.h"
 #include "Player.h"
@@ -92,6 +93,7 @@ namespace spades {
 				PacketTypeHandShakeReturn = 32, // C2S
 				PacketTypeVersionGet = 33,      // S2C
 				PacketTypeVersionSend = 34,     // C2S
+				PacketTypeExtensionInfo = 60,
 
 			};
 
@@ -425,7 +427,6 @@ namespace spades {
 
 			status = NetClientStatusConnecting;
 			statusString = _Tr("NetClient", "Connecting to the server");
-			timeToTryMapLoad = 0;
 		}
 
 		void NetClient::Disconnect() {
@@ -506,7 +507,7 @@ namespace spades {
 					auto &reader = readerOrNone.value();
 
 					try {
-						if (HandleHandshakePacket(reader)) {
+						if (HandleHandshakePackets(reader)) {
 							continue;
 						}
 					} catch (const std::exception &ex) {
@@ -527,75 +528,47 @@ namespace spades {
 							SPRaise("Unexpected packet: %d", (int)reader.GetType());
 						}
 
-						mapSize = reader.ReadInt();
+						auto mapSize = reader.ReadInt();
+						SPLog("Map size advertised by the server: %lu", (unsigned long)mapSize);
+
+						mapLoader.reset(new GameMapLoader());
+						mapLoadMonitor.reset(new MapDownloadMonitor(*mapLoader));
+
 						status = NetClientStatusReceivingMap;
 						statusString = _Tr("NetClient", "Loading snapshot");
-						timeToTryMapLoad = 30;
-						tryMapLoadOnPacketType = true;
 					}
 				} else if (status == NetClientStatusReceivingMap) {
+					SPAssert(mapLoader);
+
 					if (event.type == ENET_EVENT_TYPE_RECEIVE) {
 						auto &reader = readerOrNone.value();
 
 						if (reader.GetType() == PacketTypeMapChunk) {
 							std::vector<char> dt = reader.GetData();
-							dt.erase(dt.begin());
-							mapData.insert(mapData.end(), dt.begin(), dt.end());
 
-							timeToTryMapLoad = 200;
-
-							statusString = _Tr("NetClient", "Loading snapshot ({0}/{1})",
-							                   mapData.size(), mapSize);
-
-							if (mapSize == mapData.size()) {
-								status = NetClientStatusConnected;
-								statusString = _Tr("NetClient", "Connected");
-
-								try {
-									MapLoaded();
-								} catch (const std::exception &ex) {
-									if (strstr(ex.what(), "File truncated") ||
-									    strstr(ex.what(), "EOF reached")) {
-										SPLog("Map decoder returned error. Maybe we will get more "
-										      "data...:\n%s",
-										      ex.what());
-										// hack: more data to load...
-										status = NetClientStatusReceivingMap;
-										statusString = _Tr("NetClient", "Still loading...");
-									} else {
-										Disconnect();
-										statusString = _Tr("NetClient", "Error");
-										throw;
-									}
-
-								} catch (...) {
-									Disconnect();
-									statusString = _Tr("NetClient", "Error");
-									throw;
-								}
-							}
-
+							mapLoader->AddRawChunk(dt.data() + 1, dt.size() - 1);
+							mapLoadMonitor->AccumulateBytes(
+							  static_cast<unsigned int>(dt.size() - 1));
 						} else {
 							reader.DumpDebug();
 
-							// On pyspades and derivative servers the actual size of the map data
-							// cannot be known in beforehand, so we have to find the end of the data
-							// by one of other means. One indicator for this would be a packet of a
-							// type other than MapChunk, which usually marks the end of map data
-							// transfer.
+							// The actual size of the map data cannot be known beforehand because
+							// of compression. This means we must detect the end of the map
+							// transfer in another way.
 							//
-							// However, we can't rely on this heuristics entirely because there are
-							// several occasions where the server would send non-MapChunk packets
-							// during map loading sequence, for example:
+							// We do this by checking for a StateData packet, which is sent
+							// directly after the map transfer completes.
+							//
+							// A number of other packets can also be received while loading the map:
 							//
 							//  - World update packets (WorldUpdate, ExistingPlayer, and
 							//    CreatePlayer) for the current round. We must store such packets
-							//	  temporarily and process them later when a `World` is created.
+							//    temporarily and process them later when a `World` is created.
 							//
 							//  - Leftover reload packet from the previous round. This happens when
 							//    you initiate the reload action and a map change occurs before it
-							// 	  is completed. In pyspades, sending a reload packet is implemented
-							// 	  by registering a callback function to the Twisted reactor. This
+							//    is completed. In pyspades, sending a reload packet is implemented
+							//    by registering a callback function to the Twisted reactor. This
 							//    callback function sends a reload packet, but it does not check if
 							//    the current game round is finished, nor is it unregistered on a
 							//    map change.
@@ -605,29 +578,17 @@ namespace spades {
 							//    an "invalid player ID" exception, so we simply drop it during
 							//    map load sequence.
 							//
-							if (reader.GetType() == PacketTypeWeaponReload) {
-								// Drop reload packets
-							} else if (reader.GetType() != PacketTypeWorldUpdate &&
-							           reader.GetType() != PacketTypeExistingPlayer &&
-							           reader.GetType() != PacketTypeCreatePlayer &&
-							           tryMapLoadOnPacketType) {
+
+							if (reader.GetType() == PacketTypeStateData) {
 								status = NetClientStatusConnected;
 								statusString = _Tr("NetClient", "Connected");
 
 								try {
 									MapLoaded();
 								} catch (const std::exception &ex) {
-									tryMapLoadOnPacketType = false;
 									if (strstr(ex.what(), "File truncated") ||
 									    strstr(ex.what(), "EOF reached")) {
-										SPLog("Map decoder returned error. Maybe we will get more "
-										      "data...:\n%s",
-										      ex.what());
-										// hack: more data to load...
-										status = NetClientStatusReceivingMap;
-										statusString = _Tr("NetClient", "Still loading...");
-										goto stillLoading;
-									} else {
+										SPLog("Map decoder returned error:\n%s", ex.what());
 										Disconnect();
 										statusString = _Tr("NetClient", "Error");
 										throw;
@@ -638,12 +599,15 @@ namespace spades {
 									throw;
 								}
 								HandleGamePacket(reader);
+							} else if (reader.GetType() == PacketTypeWeaponReload) {
+								// Drop the reload packet. Pyspades does not
+								// cancel the reload packets on map change and
+								// they would cause an error if we would
+								// process them
 							} else {
-							stillLoading:
+								// Save the packet for later
 								savedPackets.push_back(reader.GetData());
 							}
-
-							// HandleGamePacket(reader);
 						}
 					}
 				} else if (status == NetClientStatusConnected) {
@@ -657,37 +621,6 @@ namespace spades {
 							reader.DumpDebug();
 							SPRaise("Exception while handling packet type 0x%08x:\n%s", type,
 							        ex.what());
-						}
-					}
-				}
-			}
-
-			if (status == NetClientStatusReceivingMap) {
-				if (timeToTryMapLoad > 0) {
-					timeToTryMapLoad--;
-					if (timeToTryMapLoad == 0) {
-						try {
-							MapLoaded();
-						} catch (const std::exception &ex) {
-							if ((strstr(ex.what(), "File truncated") ||
-							     strstr(ex.what(), "EOF reached")) &&
-							    savedPackets.size() < 400) {
-								// hack: more data to load...
-								SPLog(
-								  "Map decoder returned error. Maybe we will get more data...:\n%s",
-								  ex.what());
-								status = NetClientStatusReceivingMap;
-								statusString = _Tr("NetClient", "Still loading...");
-								timeToTryMapLoad = 200;
-							} else {
-								Disconnect();
-								statusString = _Tr("NetClient", "Error");
-								throw;
-							}
-						} catch (...) {
-							Disconnect();
-							statusString = _Tr("NetClient", "Error");
-							throw;
 						}
 					}
 				}
@@ -765,11 +698,12 @@ namespace spades {
 			}
 		}
 
-		bool NetClient::HandleHandshakePacket(spades::client::NetPacketReader &reader) {
+		bool NetClient::HandleHandshakePackets(spades::client::NetPacketReader &reader) {
 			SPADES_MARK_FUNCTION();
 
 			switch (reader.GetType()) {
 				case PacketTypeHandShakeInit: SendHandShakeValid(reader.ReadInt()); return true;
+				case PacketTypeExtensionInfo: HandleExtensionPacket(reader); return true;
 				case PacketTypeVersionGet: {
 					if (reader.GetNumRemainingBytes() > 0) {
 						// Enhanced variant
@@ -786,6 +720,24 @@ namespace spades {
 					return true;
 				default: return false;
 			}
+		}
+
+		void NetClient::HandleExtensionPacket(spades::client::NetPacketReader &reader) {
+			int ext_count = reader.ReadByte();
+			for (int i = 0; i < ext_count; i++) {
+				int ext_id = reader.ReadByte();
+				int ext_version = reader.ReadByte();
+
+				auto got = implementedExtensions.find(ext_id);
+
+				if (got == implementedExtensions.end()) {
+					SPLog("Client does not support extension %d", ext_id);
+				} else {
+					SPLog("Client supports extension %d", ext_id);
+					extensions.emplace(got->first, got->second);
+				}
+			}
+			SendSupportedExtensions();
 		}
 
 		void NetClient::HandleGamePacket(spades::client::NetPacketReader &reader) {
@@ -1354,7 +1306,13 @@ namespace spades {
 						enet_peer_send(peer, 0, wri.CreatePacket());
 					}
 					client->SetWorld(NULL);
-					mapSize = reader.ReadInt();
+
+					auto mapSize = reader.ReadInt();
+					SPLog("Map size advertised by the server: %lu", (unsigned long)mapSize);
+
+					mapLoader.reset(new GameMapLoader());
+					mapLoadMonitor.reset(new MapDownloadMonitor(*mapLoader));
+
 					status = NetClientStatusReceivingMap;
 					statusString = _Tr("NetClient", "Loading snapshot");
 				} break;
@@ -1447,8 +1405,10 @@ namespace spades {
 					ctf->GetTeam(p->GetTeamId()).score++;
 
 					bool winning = reader.ReadByte() != 0;
-					if (winning)
+					if (winning) {
+						ctf->ResetTeamScoreAndIntelHoldingStatus();
 						client->TeamWon(p->GetTeamId());
+					}
 				} break;
 				case PacketTypeIntelPickup: {
 					Player *p = GetPlayer(reader.ReadByte());
@@ -1828,14 +1788,33 @@ namespace spades {
 			enet_peer_send(peer, 0, wri.CreatePacket());
 		}
 
+		void NetClient::SendSupportedExtensions() {
+			SPADES_MARK_FUNCTION();
+			NetPacketWriter wri(PacketTypeExtensionInfo);
+			wri.Write(static_cast<uint8_t>(extensions.size()));
+			for (auto &i : extensions) {
+				wri.Write(static_cast<uint8_t>(i.first));  // ext id
+				wri.Write(static_cast<uint8_t>(i.second)); // ext version
+			}
+			SPLog("Sending extension support.");
+			enet_peer_send(peer, 0, wri.CreatePacket());
+		}
+
 		void NetClient::MapLoaded() {
 			SPADES_MARK_FUNCTION();
-			MemoryStream compressed(mapData.data(), mapData.size());
-			DeflateStream inflate(&compressed, CompressModeDecompress, false);
-			GameMap *map;
-			map = GameMap::Load(&inflate);
 
-			SPLog("Map decoding succeeded.");
+			SPAssert(mapLoader);
+
+			// Move `mapLoader` to a local variable so that the associated resources
+			// are released as soon as possible when no longer needed
+			std::unique_ptr<GameMapLoader> mapLoader = std::move(this->mapLoader);
+			mapLoadMonitor.reset();
+
+			SPLog("Waiting for the game map decoding to complete...");
+			mapLoader->MarkEOF();
+			mapLoader->WaitComplete();
+			GameMap *map = mapLoader->TakeGameMap();
+			SPLog("The game map was decoded successfully.");
 
 			// now initialize world
 			World *w = new World(properties);
@@ -1844,8 +1823,6 @@ namespace spades {
 			SPLog("World initialized.");
 
 			client->SetWorld(w);
-
-			mapData.clear();
 
 			SPAssert(GetWorld());
 
@@ -1869,6 +1846,23 @@ namespace spades {
 			}
 		}
 
+		float NetClient::GetMapReceivingProgress() {
+			SPAssert(status == NetClientStatusReceivingMap);
+
+			return mapLoader->GetProgress();
+		}
+
+		std::string NetClient::GetStatusString() {
+			if (status == NetClientStatusReceivingMap) {
+				// Display extra information
+				auto text = mapLoadMonitor->GetDisplayedText();
+				if (!text.empty()) {
+					return Format("{0} ({1})", statusString, text);
+				}
+			}
+			return statusString;
+		}
+
 		NetClient::BandwidthMonitor::BandwidthMonitor(ENetHost *host)
 		    : host(host), lastDown(0.0), lastUp(0.0) {
 			sw.Reset();
@@ -1882,6 +1876,58 @@ namespace spades {
 				host->totalReceivedData = 0;
 				sw.Reset();
 			}
+		}
+
+		NetClient::MapDownloadMonitor::MapDownloadMonitor(GameMapLoader &mapLoader)
+		    : numBytesDownloaded{0}, mapLoader{mapLoader}, receivedFirstByte{false} {}
+
+		void NetClient::MapDownloadMonitor::AccumulateBytes(unsigned int numBytes) {
+			// It might take a while before receiving the first byte. Take this into account to
+			// get a more accurate estimate of download time.
+			if (!receivedFirstByte) {
+				sw.Reset();
+				receivedFirstByte = true;
+			}
+
+			numBytesDownloaded += numBytes;
+		}
+
+		std::string NetClient::MapDownloadMonitor::GetDisplayedText() {
+			if (!receivedFirstByte) {
+				return {};
+			}
+
+			float secondsElapsed = static_cast<float>(sw.GetTime());
+
+			if (secondsElapsed <= 0.0) {
+				return {};
+			}
+
+			float progress = mapLoader.GetProgress();
+			float bytesPerSec = static_cast<float>(numBytesDownloaded) / secondsElapsed;
+			float progressPerSec = progress / secondsElapsed;
+
+			std::string text = Format("{0} KB, {1} KB/s", (numBytesDownloaded + 500) / 1000,
+			                          ((int)bytesPerSec + 500) / 1000);
+
+			// Estimate the remaining time
+			float secondsRemaining = (1.0 - progress) / progressPerSec;
+
+			if (secondsRemaining < 86400.0) {
+				int seconds = (int)secondsRemaining + 1;
+
+				text += ", ";
+
+				if (seconds < 120) {
+					text +=
+					  _TrN("NetClient", "{0} second remaining", "{0} seconds remaining", seconds);
+				} else {
+					text += _TrN("NetClient", "{0} minute remaining", "{0} minutes remaining",
+					             seconds / 60);
+				}
+			}
+
+			return text;
 		}
 	}
 }

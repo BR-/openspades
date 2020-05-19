@@ -272,7 +272,7 @@ namespace spades {
 			std::shared_ptr<YsrBuffer> buffer;
 
 		protected:
-			virtual ~YsrAudioChunk() {}
+			~YsrAudioChunk() {}
 
 		public:
 			YsrAudioChunk(std::shared_ptr<YsrDriver> driver, IAudioStream *stream) {
@@ -448,6 +448,15 @@ namespace spades {
 			return it->second;
 		}
 
+		void YsrDevice::ClearCache() {
+			SPADES_MARK_FUNCTION();
+
+			for (auto &chunk: chunks) {
+				chunk.second->Release();
+			}
+			chunks.clear();
+		}
+
 		void YsrDevice::SetGameMap(client::GameMap *gameMap) {
 			SPADES_MARK_FUNCTION();
 			auto *old = this->gameMap;
@@ -457,8 +466,6 @@ namespace spades {
 			if (old)
 				old->Release();
 		}
-
-		static float NextRandom() { return real_dist(mt_engine); }
 
 		void YsrDevice::Respatialize(const spades::Vector3 &eye, const spades::Vector3 &front,
 		                             const spades::Vector3 &up) {
@@ -485,9 +492,9 @@ namespace spades {
 				Vector3 rayTo;
 
 				for (int rays = 0; rays < 4; rays++) {
-					rayTo.x = NextRandom() - NextRandom();
-					rayTo.y = NextRandom() - NextRandom();
-					rayTo.z = NextRandom() - NextRandom();
+					rayTo.x = SampleRandomFloat() - SampleRandomFloat();
+					rayTo.y = SampleRandomFloat() - SampleRandomFloat();
+					rayTo.z = SampleRandomFloat() - SampleRandomFloat();
 					rayTo = rayTo.Normalize();
 
 					IntVector3 hitPos;

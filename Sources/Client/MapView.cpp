@@ -81,7 +81,7 @@ namespace spades {
 				line = ClipLineSegment(*line, Plane2{0.0f, -1.0f, rect.GetMaxY()});
 				return line;
 			}
-		}
+		} // namespace
 
 		MapView::MapView(Client *c, bool largeMap)
 		    : client(c), renderer(c->GetRenderer()), largeMap(largeMap) {
@@ -256,7 +256,8 @@ namespace spades {
 				focusPlayerPtr = &player;
 			} else if (client->GetCameraMode() == ClientCameraMode::Free) {
 				focusPlayerPos = client->freeCameraState.position;
-				focusPlayerAngle = client->followAndFreeCameraState.yaw - static_cast<float>(M_PI) * .5f;
+				focusPlayerAngle =
+				  client->followAndFreeCameraState.yaw - static_cast<float>(M_PI) * .5f;
 				focusPlayerPtr = world->GetLocalPlayer();
 			} else {
 				return;
@@ -367,15 +368,17 @@ namespace spades {
 			                    AABB2(0, 16, 16, 16));
 			renderer->DrawImage(border, AABB2(borderRect.GetMaxX(), borderRect.GetMaxY(), 16, 16),
 			                    AABB2(16, 16, 16, 16));
-			renderer->DrawImage(border, AABB2(borderRect.GetMinX(), borderRect.GetMinY() - 16,
-			                                  borderRect.GetWidth(), 16),
-			                    AABB2(16, 0, 0, 16));
+			renderer->DrawImage(
+			  border,
+			  AABB2(borderRect.GetMinX(), borderRect.GetMinY() - 16, borderRect.GetWidth(), 16),
+			  AABB2(16, 0, 0, 16));
 			renderer->DrawImage(
 			  border, AABB2(borderRect.GetMinX(), borderRect.GetMaxY(), borderRect.GetWidth(), 16),
 			  AABB2(16, 16, 0, 16));
-			renderer->DrawImage(border, AABB2(borderRect.GetMinX() - 16, borderRect.GetMinY(), 16,
-			                                  borderRect.GetHeight()),
-			                    AABB2(0, 16, 16, 0));
+			renderer->DrawImage(
+			  border,
+			  AABB2(borderRect.GetMinX() - 16, borderRect.GetMinY(), 16, borderRect.GetHeight()),
+			  AABB2(0, 16, 16, 0));
 			renderer->DrawImage(
 			  border, AABB2(borderRect.GetMaxX(), borderRect.GetMinY(), 16, borderRect.GetHeight()),
 			  AABB2(16, 16, 16, 0));
@@ -470,78 +473,75 @@ namespace spades {
 			Handle<IImage> playerRifle = renderer->RegisterImage("Gfx/Map/Rifle.png");
 			Handle<IImage> playerShotgun = renderer->RegisterImage("Gfx/Map/Shotgun.png");
 			Handle<IImage> playerIcon = renderer->RegisterImage("Gfx/Map/Player.png");
+			Handle<IImage> viewIcon = renderer->RegisterImage("Gfx/Map/View.png");
 
-			{
-
-				IntVector3 teamColor =
-				  focusPlayerPtr->GetTeamId() >= 2
-				    ? IntVector3::Make(200, 200, 200)
-				    : world->GetTeam(focusPlayerPtr->GetTeamId()).color;
-				Vector4 teamColorF = ModifyColor(teamColor);
-				teamColorF *= alpha;
-
-				// Draw the focused player's view
-				{
-					Handle<IImage> viewIcon = renderer->RegisterImage("Gfx/Map/View.png");
-					if (focusPlayer.IsAlive()) {
-						renderer->SetColorAlphaPremultiplied(teamColorF * 0.9f);
-						DrawIcon(focusPlayerPos, viewIcon, focusPlayerAngle);
-					}
+			// draw player's icon
+			for (int i = 0; i < world->GetNumPlayerSlots(); i++) {
+				Player *p = world->GetPlayer(i);
+				if (!p || !p->IsAlive()) {
+					// The player is non-existent or dead
+					continue;
+				}
+				if (!localPlayer.IsSpectator() && localPlayer.GetTeamId() != p->GetTeamId()) {
+					// Duh
+					continue;
+				}
+				if (p->IsSpectator() && p == &localPlayer &&
+				    HasTargetPlayer(client->GetCameraMode())) {
+					// Don't draw white icon when spectating a player
+					continue;
+				}
+				if (p->IsSpectator() && p != &localPlayer) {
+					// Don't draw other spectators
+					continue;
 				}
 
-				// draw player's icon
-				for (int i = 0; i < world->GetNumPlayerSlots(); i++) {
-					Player *p = world->GetPlayer(i);
-					if (!p || !p->IsAlive()) {
-						// The player is non-existent or dead
-						continue;
-					}
-					if (!localPlayer.IsSpectator() && localPlayer.GetTeamId() != p->GetTeamId()) {
-						// Duh
-						continue;
+				IntVector3 iconColor =
+				  colorMode ? IntVector3::Make(palette[i][0], palette[i][1], palette[i][2])
+				            : world->GetTeam(p->GetTeamId()).color;
+				if (p->GetTeamId() >= 2)
+					iconColor =
+					  IntVector3::Make(200, 200, 200); // colorMode doesn't matter here, right?
+				Vector4 iconColorF = ModifyColor(iconColor);
+				iconColorF *= alpha;
+
+				Vector3 front = p->GetFront2D();
+				float ang = atan2(front.x, -front.y);
+				if (p->IsSpectator() && client->GetCameraMode() == ClientCameraMode::Free) {
+					ang = focusPlayerAngle;
+				}
+
+				// Draw the focused player's view
+				if (p == &focusPlayer) {
+					renderer->SetColorAlphaPremultiplied(iconColorF * 0.9f);
+					DrawIcon(p->IsSpectator() ? client->freeCameraState.position : p->GetPosition(),
+					         viewIcon, ang);
+				}
+
+				renderer->SetColorAlphaPremultiplied(iconColorF);
+				// use a different icon in minimap according to weapon of player
+				if (iconMode) {
+					WeaponType weapon = world->GetPlayer(i)->GetWeaponType();
+					if (weapon == WeaponType::SMG_WEAPON) {
+						DrawIcon(p->IsSpectator() ? client->freeCameraState.position
+						                          : p->GetPosition(),
+						         playerSMG, ang);
 					}
 
-					Vector3 front = p->GetFront2D();
-					float ang = atan2(front.x, -front.y);
-					if (p == &focusPlayer && p->IsSpectator()) {
-						ang = focusPlayerAngle;
+					else if (weapon == WeaponType::RIFLE_WEAPON) {
+						DrawIcon(p->IsSpectator() ? client->freeCameraState.position
+						                          : p->GetPosition(),
+						         playerRifle, ang);
 					}
 
-					// use a spec color for each player
-					if (colorMode) {
-						IntVector3 Colorplayer =
-						  IntVector3::Make(palette[i][0], palette[i][1], palette[i][2]);
-						Vector4 ColorplayerF = ModifyColor(Colorplayer);
-						ColorplayerF *= 1.0f;
-						renderer->SetColorAlphaPremultiplied(ColorplayerF);
-					} else {
-						renderer->SetColorAlphaPremultiplied(teamColorF);
+					else if (weapon == WeaponType::SHOTGUN_WEAPON) {
+						DrawIcon(p->IsSpectator() ? client->freeCameraState.position
+						                          : p->GetPosition(),
+						         playerShotgun, ang);
 					}
-
-					// use a different icon in minimap according to weapon of player
-					if (iconMode) {
-						WeaponType weapon = world->GetPlayer(i)->GetWeaponType();
-						if (weapon == WeaponType::SMG_WEAPON) {
-							DrawIcon(p->IsSpectator() ? client->freeCameraState.position
-							                                  : p->GetPosition(),
-							         playerSMG, ang);
-						}
-
-						else if (weapon == WeaponType::RIFLE_WEAPON) {
-							DrawIcon(p->IsSpectator() ? client->freeCameraState.position
-							                                  : p->GetPosition(),
-							         playerRifle, ang);
-						}
-
-						else if (weapon == WeaponType::SHOTGUN_WEAPON) {
-							DrawIcon(p->IsSpectator() ? client->freeCameraState.position
-							                                  : p->GetPosition(),
-							         playerShotgun, ang);
-						}
-					} else { // draw normal color
-						DrawIcon(p == &focusPlayer ? focusPlayerPos : p->GetPosition(),
-						         playerIcon, ang);
-					}
+				} else { // draw normal color
+					DrawIcon(p == &focusPlayer ? focusPlayerPos : p->GetPosition(), playerIcon,
+					         ang);
 				}
 			}
 
@@ -671,7 +671,7 @@ namespace spades {
 
 			visibleLength = shutterTime * velocity;
 			curDistance = -visibleLength;
-			curDistance += maxTimeSpread * GetRandom();
+			curDistance += maxTimeSpread * SampleRandomFloat();
 
 			firstUpdate = true;
 		}
@@ -701,5 +701,5 @@ namespace spades {
 		}
 
 		MapViewTracer::~MapViewTracer() {}
-	}
-}
+	} // namespace client
+} // namespace spades

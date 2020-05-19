@@ -20,26 +20,15 @@
 #include "FieldWithHistory.as"
 
 namespace spades {
-
-	uint StringCommonPrefixLength(string a, string b) {
-for (uint i = 0; i < a.length; i++) a[i] = ToLower(a[i]);
-for (uint i = 0; i < b.length; i++) b[i] = ToLower(b[i]);
-if (a.findFirst("secret") != b.findFirst("secret")) {
-	return -1;
-}
-        for(uint i = 0, ln = Min(a.length, b.length); i < ln; i++) {
-            if(ToLower(a[i]) != ToLower(b[i])) return i;
-        }
-        return Min(a.length, b.length);
-    }
+    // TODO: Remove cvar editing (superseded by the system console) after 0.1.4
 
     /** Shows cvar's current value when user types something like "/cg_foobar" */
-    class CommandFieldConfigValueView: spades::ui::UIElement {
-        string[]@ configNames;
+    class CommandFieldConfigValueView : spades::ui::UIElement {
+        string[] @configNames;
         string[] configValues;
-        CommandFieldConfigValueView(spades::ui::UIManager@ manager, string[] configNames) {
+        CommandFieldConfigValueView(spades::ui::UIManager @manager, string[] configNames) {
             super(manager);
-            for(uint i = 0, len = configNames.length; i < len; i++) {
+            for (uint i = 0, len = configNames.length; i < len; i++) {
                 configValues.insertLast(ConfigItem(configNames[i]).StringValue);
             }
             @this.configNames = configNames;
@@ -47,11 +36,11 @@ if (a.findFirst("secret") != b.findFirst("secret")) {
         void Render() {
             float maxNameLen = 0.f;
             float maxValueLen = 20.f;
-            Font@ font = this.Font;
-            Renderer@ renderer = this.Manager.Renderer;
+            Font @font = this.Font;
+            Renderer @renderer = this.Manager.Renderer;
             float rowHeight = 25.f;
 
-            for(uint i = 0, len = configNames.length; i < len; i++) {
+            for (uint i = 0, len = configNames.length; i < len; i++) {
                 maxNameLen = Max(maxNameLen, font.Measure(configNames[i]).x);
                 maxValueLen = Max(maxValueLen, font.Measure(configValues[i]).x);
             }
@@ -59,60 +48,54 @@ if (a.findFirst("secret") != b.findFirst("secret")) {
             pos.y -= float(configNames.length) * rowHeight + 10.f;
 
             renderer.ColorNP = Vector4(0.f, 0.f, 0.f, 0.5f);
-            renderer.DrawImage(null,
-                AABB2(pos.x, pos.y, maxNameLen + maxValueLen + 20.f,
-                      float(configNames.length) * rowHeight + 10.f));
+            renderer.DrawImage(null, AABB2(pos.x, pos.y, maxNameLen + maxValueLen + 20.f,
+                                           float(configNames.length) * rowHeight + 10.f));
 
-            for(uint i = 0, len = configNames.length; i < len; i++) {
-                font.DrawShadow(configNames[i],
-                    pos + Vector2(5.f, 8.f + float(i) * rowHeight),
-                    1.f, Vector4(1,1,1,0.7), Vector4(0,0,0,0.3f));
+            for (uint i = 0, len = configNames.length; i < len; i++) {
+                font.DrawShadow(configNames[i], pos + Vector2(5.f, 8.f + float(i) * rowHeight), 1.f,
+                                Vector4(1, 1, 1, 0.7), Vector4(0, 0, 0, 0.3f));
                 font.DrawShadow(configValues[i],
-                    pos + Vector2(15.f + maxNameLen, 8.f + float(i) * rowHeight),
-                    1.f, Vector4(1,1,1,1), Vector4(0,0,0,0.4f));
+                                pos + Vector2(15.f + maxNameLen, 8.f + float(i) * rowHeight), 1.f,
+                                Vector4(1, 1, 1, 1), Vector4(0, 0, 0, 0.4f));
             }
-
         }
     }
 
-    class CommandField: FieldWithHistory {
-        CommandFieldConfigValueView@ valueView;
+    class CommandField : FieldWithHistory {
+        CommandFieldConfigValueView @valueView;
 
-        CommandField(spades::ui::UIManager@ manager, array<spades::ui::CommandHistoryItem@>@ history) {
+        CommandField(spades::ui::UIManager @manager,
+                     array<spades::ui::CommandHistoryItem @> @history) {
             super(manager, history);
-
         }
 
         void OnChanged() {
             FieldWithHistory::OnChanged();
 
-            if(valueView !is null) {
+            if (valueView !is null) {
                 @valueView.Parent = null;
             }
-            if(Text.substr(0, 1) == "/" &&
-               Text.substr(1, 1) != " ") {
+            if (Text.substr(0, 1) == "/" && Text.substr(1, 1) != " ") {
                 int whitespace = Text.findFirst(" ");
-                if(whitespace < 0) {
+                if (whitespace < 0) {
                     whitespace = int(Text.length);
                 }
 
                 string input = Text.substr(1, whitespace - 1);
-                if(input.length >= 2) {
-                    string[]@ names = GetAllConfigNames();
+                if (input.length >= 2) {
+                    string[] @names = GetAllConfigNames();
                     string[] filteredNames;
-                    for(uint i = 0, len = names.length; i < len; i++) {
-                        if (
-                            StringCommonPrefixLength(input, names[i]) == input.length &&
-                            !ConfigItem(names[i]).IsUnknown
-                        ) {
+                    for (uint i = 0, len = names.length; i < len; i++) {
+                        if (StringCommonPrefixLength(input, names[i]) == input.length &&
+                            !ConfigItem(names[i]).IsUnknown) {
                             filteredNames.insertLast(names[i]);
-                            if(filteredNames.length >= 8) {
+                            if (filteredNames.length >= 8) {
                                 // too many
                                 break;
                             }
                         }
                     }
-                    if(filteredNames.length > 0) {
+                    if (filteredNames.length > 0) {
                         @valueView = CommandFieldConfigValueView(this.Manager, filteredNames);
                         valueView.Bounds = AABB2(0.f, -15.f, 0.f, 0.f);
                         @valueView.Parent = this;
@@ -122,22 +105,18 @@ if (a.findFirst("secret") != b.findFirst("secret")) {
         }
 
         void KeyDown(string key) {
-            if(key == "Tab") {
-                if(SelectionLength == 0 &&
-                   SelectionStart == int(Text.length) &&
-                   Text.substr(0, 1) == "/" &&
-                   Text.findFirst(" ") < 0) {
+            if (key == "Tab") {
+                if (SelectionLength == 0 && SelectionStart == int(Text.length) &&
+                    Text.substr(0, 1) == "/" && Text.findFirst(" ") < 0) {
                     // config variable auto completion
                     string input = Text.substr(1);
-                    string[]@ names = GetAllConfigNames();
+                    string[] @names = GetAllConfigNames();
                     string commonPart;
                     bool foundOne = false;
-                    for(uint i = 0, len = names.length; i < len; i++) {
-                        if (
-                            StringCommonPrefixLength(input, names[i]) == input.length &&
-                            !ConfigItem(names[i]).IsUnknown
-                        ) {
-                            if(!foundOne) {
+                    for (uint i = 0, len = names.length; i < len; i++) {
+                        if (StringCommonPrefixLength(input, names[i]) == input.length &&
+                            !ConfigItem(names[i]).IsUnknown) {
+                            if (!foundOne) {
                                 commonPart = names[i];
                                 foundOne = true;
                             }
@@ -147,37 +126,36 @@ if (a.findFirst("secret") != b.findFirst("secret")) {
                         }
                     }
 
-                    if(commonPart.length > input.length) {
+                    if (commonPart.length > input.length) {
                         Text = "/" + commonPart;
                         Select(Text.length, 0);
                     }
-
                 }
-            }else{
+            } else {
                 FieldWithHistory::KeyDown(key);
             }
         }
     }
 
-	enum ChatType {
-		global,
-		team,
-		twitch
-	};
+    enum ChatType {
+        global,
+        team,
+        twitch
+    };
 
-    class ClientChatWindow: spades::ui::UIElement {
-        private ClientUI@ ui;
-        private ClientUIHelper@ helper;
+    class ClientChatWindow : spades::ui::UIElement {
+        private ClientUI @ui;
+        private ClientUIHelper @helper;
 
-        CommandField@ field;
-        spades::ui::Button@ sayButton;
-		spades::ui::SimpleButton@ twitchButton;
-        spades::ui::SimpleButton@ teamButton;
-        spades::ui::SimpleButton@ globalButton;
+        CommandField @field;
+        spades::ui::Button @sayButton;
+        spades::ui::SimpleButton @twitchButton;
+        spades::ui::SimpleButton @teamButton;
+        spades::ui::SimpleButton @globalButton;
 
         spades::ChatType chatType;
 
-        ClientChatWindow(ClientUI@ ui, spades::ChatType chatType) {
+        ClientChatWindow(ClientUI @ui, spades::ChatType chatType) {
             super(ui.manager);
             @this.ui = ui;
             @this.helper = ui.helper;
@@ -241,65 +219,61 @@ if (a.findFirst("secret") != b.findFirst("secret")) {
                 @teamButton.Activated = spades::ui::EventHandler(this.OnSetTeam);
                 AddChild(teamButton);
             }
-			{
-				@twitchButton = spades::ui::SimpleButton(Manager);
-				twitchButton.Toggle = true;
-				twitchButton.Toggled = chatType == spades::ChatType::twitch;
-				twitchButton.Caption = _Tr("Client", "Twitch");
-				twitchButton.Bounds = AABB2(winX + 140.f, winY + 36.f, 70.f, 30.f);
-				@twitchButton.Activated = spades::ui::EventHandler(this.OnSetTwitch);
-				AddChild(twitchButton);
-			}
+            {
+                @twitchButton = spades::ui::SimpleButton(Manager);
+                twitchButton.Toggle = true;
+                twitchButton.Toggled = chatType == spades::ChatType::twitch;
+                twitchButton.Caption = _Tr("Client", "Twitch");
+                twitchButton.Bounds = AABB2(winX + 140.f, winY + 36.f, 70.f, 30.f);
+                @twitchButton.Activated = spades::ui::EventHandler(this.OnSetTwitch);
+                AddChild(twitchButton);
+            }
         }
 
-        void UpdateState() {
-            sayButton.Enable = field.Text.length > 0;
-        }
+        void UpdateState() { sayButton.Enable = field.Text.length > 0; }
 
-		void SetType(spades::ChatType newChatType) {
-				if (chatType == newChatType) return;
-				chatType = newChatType;
-				globalButton.Toggled = chatType == spades::ChatType::global;
-				teamButton.Toggled = chatType == spades::ChatType::team;
-				twitchButton.Toggled = chatType == spades::ChatType::twitch;
-				UpdateState();
-		}
-        private void OnSetGlobal(spades::ui::UIElement@ sender) {
-			SetType(spades::ChatType::global);
-        }
-        private void OnSetTeam(spades::ui::UIElement@ sender) {
-			SetType(spades::ChatType::team);
-        }
-		private void OnSetTwitch(spades::ui::UIElement@ sender) {
-			SetType(spades::ChatType::twitch);
-		}
-
-        private void OnFieldChanged(spades::ui::UIElement@ sender) {
+        void SetType(spades::ChatType newChatType) {
+            if (chatType == newChatType) return;
+            chatType = newChatType;
+            globalButton.Toggled = chatType == spades::ChatType::global;
+            teamButton.Toggled = chatType == spades::ChatType::team;
+            twitchButton.Toggled = chatType == spades::ChatType::twitch;
             UpdateState();
         }
-
-        private void Close() {
-            @ui.ActiveUI = null;
+        private void OnSetGlobal(spades::ui::UIElement@ sender) {
+            SetType(spades::ChatType::global);
+        }
+        private void OnSetTeam(spades::ui::UIElement@ sender) {
+            SetType(spades::ChatType::team);
+        }
+        private void OnSetTwitch(spades::ui::UIElement@ sender) {
+            SetType(spades::ChatType::twitch);
         }
 
-        private void OnCancel(spades::ui::UIElement@ sender) {
+        private void OnFieldChanged(spades::ui::UIElement @sender) { UpdateState(); }
+
+        private void Close() { @ui.ActiveUI = null; }
+
+        private void OnCancel(spades::ui::UIElement @sender) {
             field.Cancelled();
             Close();
         }
 
         private bool CheckAndSetConfigVariable() {
             string text = field.Text;
-            if(text.substr(0, 1) != "/") return false;
+            if (text.substr(0, 1) != "/")
+                return false;
             int idx = text.findFirst(" ");
-            if(idx < 2) return false;
+            if (idx < 2)
+                return false;
 
             // find variable
             string varname = text.substr(1, idx - 1);
             string[] vars = GetAllConfigNames();
 
-            for(uint i = 0, len = vars.length; i < len; i++) {
-                if(vars[i].length == varname.length &&
-                   StringCommonPrefixLength(vars[i], varname) == vars[i].length) {
+            for (uint i = 0, len = vars.length; i < len; i++) {
+                if (vars[i].length == varname.length &&
+                    StringCommonPrefixLength(vars[i], varname) == vars[i].length) {
                     // match
                     string val = text.substr(idx + 1);
                     ConfigItem item(vars[i]);
@@ -311,28 +285,31 @@ if (a.findFirst("secret") != b.findFirst("secret")) {
             return false;
         }
 
-        private void OnSay(spades::ui::UIElement@ sender) {
+        private void OnSay(spades::ui::UIElement @sender) {
             field.CommandSent();
             if(!CheckAndSetConfigVariable()) {
-				if (field.Text == "/login")
-					ui.helper.SayLogin();
+                if (field.Text == "/login")
+                    ui.helper.SayLogin();
                 else if(chatType == spades::ChatType::team)
                     ui.helper.SayTeam(field.Text);
                 else if(chatType == spades::ChatType::global)
                     ui.helper.SayGlobal(field.Text);
-				else if(chatType == spades::ChatType::twitch)
-					ui.helper.SayTwitch(field.Text);
+                else if(chatType == spades::ChatType::twitch)
+                    ui.helper.SayTwitch(field.Text);
+            } else {
+                ui.helper.AlertWarning(_Tr(
+                    "Client", "cvar editing via chat window is being phased out (see issue #842)"));
             }
             Close();
         }
 
         void HotKey(string key) {
-            if(IsEnabled and key == "Escape") {
+            if (IsEnabled and key == "Escape") {
                 OnCancel(this);
-            }else if(IsEnabled and (key == "Enter" or key == "Keypad Enter")) {
-                if(field.Text.length == 0) {
+            } else if (IsEnabled and (key == "Enter" or key == "Keypad Enter")) {
+                if (field.Text.length == 0) {
                     OnCancel(this);
-                }else{
+                } else {
                     OnSay(this);
                 }
             } else {
@@ -340,5 +317,4 @@ if (a.findFirst("secret") != b.findFirst("secret")) {
             }
         }
     }
-
 }

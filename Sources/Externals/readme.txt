@@ -30,7 +30,7 @@ Externals
 |   |   \---(All libopus/libopusfile/libogg headers)
 |   |
 |   \---SDL2/
-|       \---(All SD2L headers)
+|       \---(All SDL2 headers)
 |
 \---lib/
         (All libs here)
@@ -69,4 +69,4 @@ Externals
 
 The following URL provides a pre-compiled zip file containing all required files.
 
-https://openspadesmedia.yvt.jp/development-packages/OpenSpades-Externals-Darwin-2.zip
+https://openspadesmedia.yvt.jp/development-packages/OpenSpades-Externals-Darwin-5.zip

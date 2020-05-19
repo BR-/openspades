@@ -199,14 +199,14 @@ namespace spades {
 		class RifleWeapon3 : public Weapon {
 		public:
 			RifleWeapon3(World *w, Player *p) : Weapon(w, p) {}
-			virtual std::string GetName() { return "Rifle"; }
-			virtual float GetDelay() { return 0.5f; }
-			virtual int GetClipSize() { return 10; }
-			virtual int GetMaxStock() { return 50; }
-			virtual float GetReloadTime() { return 2.5f; }
-			virtual bool IsReloadSlow() { return false; }
-			virtual WeaponType GetWeaponType() { return RIFLE_WEAPON; }
-			virtual int GetDamage(HitType type, float distance) {
+			std::string GetName() override { return "Rifle"; }
+			float GetDelay() override { return 0.5f; }
+			int GetClipSize() override { return 10; }
+			int GetMaxStock() override { return 50; }
+			float GetReloadTime() override { return 2.5f; }
+			bool IsReloadSlow() override { return false; }
+			WeaponType GetWeaponType() override { return RIFLE_WEAPON; }
+			int GetDamage(HitType type, float distance) override {
 				switch (type) {
 					case HitTypeTorso: return 49;
 					case HitTypeHead: return 100;
@@ -216,24 +216,24 @@ namespace spades {
 					default: SPAssert(false); return 0;
 				}
 			}
-			virtual Vector3 GetRecoil() {
+			Vector3 GetRecoil() override {
 				return MakeVector3(0.0001f, 0.05f, 0.f);
 			}
-			virtual float GetSpread() { return 0.006f; }
-			virtual int GetPelletSize() { return 1; }
+			float GetSpread() override { return 0.006f; }
+			int GetPelletSize() override { return 1; }
 		};
 
 		class SMGWeapon3 : public Weapon {
 		public:
 			SMGWeapon3(World *w, Player *p) : Weapon(w, p) {}
-			virtual std::string GetName() { return "SMG"; }
-			virtual float GetDelay() { return 0.1f; }
-			virtual int GetClipSize() { return 30; }
-			virtual int GetMaxStock() { return 120; }
-			virtual float GetReloadTime() { return 2.5f; }
-			virtual bool IsReloadSlow() { return false; }
-			virtual WeaponType GetWeaponType() { return SMG_WEAPON; }
-			virtual int GetDamage(HitType type, float distance) {
+			std::string GetName() override { return "SMG"; }
+			float GetDelay() override { return 0.1f; }
+			int GetClipSize() override { return 30; }
+			int GetMaxStock() override { return 120; }
+			float GetReloadTime() override { return 2.5f; }
+			bool IsReloadSlow() override { return false; }
+			WeaponType GetWeaponType() override { return SMG_WEAPON; }
+			int GetDamage(HitType type, float distance) override {
 				switch (type) {
 					case HitTypeTorso: return 29;
 					case HitTypeHead: return 75;
@@ -243,24 +243,24 @@ namespace spades {
 					default: SPAssert(false); return 0;
 				}
 			}
-			virtual Vector3 GetRecoil() {
+			Vector3 GetRecoil() override {
 				return MakeVector3(0.00005f, 0.0125f, 0.f);
 			}
-			virtual float GetSpread() { return 0.012f; }
-			virtual int GetPelletSize() { return 1; }
+			float GetSpread() override { return 0.012f; }
+			int GetPelletSize() override { return 1; }
 		};
 
 		class ShotgunWeapon3 : public Weapon {
 		public:
 			ShotgunWeapon3(World *w, Player *p) : Weapon(w, p) {}
-			virtual std::string GetName() { return "Shotgun"; }
-			virtual float GetDelay() { return 1.f; }
-			virtual int GetClipSize() { return 6; }
-			virtual int GetMaxStock() { return 48; }
-			virtual float GetReloadTime() { return 0.5f; }
-			virtual bool IsReloadSlow() { return true; }
-			virtual WeaponType GetWeaponType() { return SHOTGUN_WEAPON; }
-			virtual int GetDamage(HitType type, float distance) {
+			std::string GetName() override { return "Shotgun"; }
+			float GetDelay() override { return 1.f; }
+			int GetClipSize() override { return 6; }
+			int GetMaxStock() override { return 48; }
+			float GetReloadTime() override { return 0.5f; }
+			bool IsReloadSlow() override { return true; }
+			WeaponType GetWeaponType() override { return SHOTGUN_WEAPON; }
+			int GetDamage(HitType type, float distance) override {
 				switch (type) {
 					case HitTypeTorso: return 27;
 					case HitTypeHead: return 37;
@@ -273,24 +273,24 @@ namespace spades {
 					default: SPAssert(false); return 0;
 				}
 			}
-			virtual Vector3 GetRecoil() {
+			Vector3 GetRecoil() override {
 				return MakeVector3(0.0002f, 0.1f, 0.f);
 			}
-			virtual float GetSpread() { return 0.024f; }
-			virtual int GetPelletSize() { return 8; }
+			float GetSpread() override { return 0.024f; }
+			int GetPelletSize() override { return 8; }
 		};
 
 		class RifleWeapon4 : public Weapon {
 		public:
 			RifleWeapon4(World *w, Player *p) : Weapon(w, p) {}
-			virtual std::string GetName() { return "Rifle"; }
-			virtual float GetDelay() { return 0.6f; }
-			virtual int GetClipSize() { return 8; }
-			virtual int GetMaxStock() { return 48; }
-			virtual float GetReloadTime() { return 2.5f; }
-			virtual bool IsReloadSlow() { return false; }
-			virtual WeaponType GetWeaponType() { return RIFLE_WEAPON; }
-			virtual int GetDamage(HitType type, float distance) {
+			std::string GetName() override { return "Rifle"; }
+			float GetDelay() override { return 0.6f; }
+			int GetClipSize() override { return 8; }
+			int GetMaxStock() override { return 48; }
+			float GetReloadTime() override { return 2.5f; }
+			bool IsReloadSlow() override { return false; }
+			WeaponType GetWeaponType() override { return RIFLE_WEAPON; }
+			int GetDamage(HitType type, float distance) override {
 				switch (type) {
 					// These are the 0.75 damage values.
 					// To be honest, we don't need this information, as the server decides the
@@ -305,24 +305,24 @@ namespace spades {
 					default: SPAssert(false); return 0;
 				}
 			}
-			virtual Vector3 GetRecoil() {
+			Vector3 GetRecoil() override {
 				return MakeVector3(0.0002f, 0.075f, 0.f);
 			}
-			virtual float GetSpread() { return 0.004f; }
-			virtual int GetPelletSize() { return 1; }
+			float GetSpread() override { return 0.004f; }
+			int GetPelletSize() override { return 1; }
 		};
 
 		class SMGWeapon4 : public Weapon {
 		public:
 			SMGWeapon4(World *w, Player *p) : Weapon(w, p) {}
-			virtual std::string GetName() { return "SMG"; }
-			virtual float GetDelay() { return 0.1f; }
-			virtual int GetClipSize() { return 30; }
-			virtual int GetMaxStock() { return 150; }
-			virtual float GetReloadTime() { return 2.5f; }
-			virtual bool IsReloadSlow() { return false; }
-			virtual WeaponType GetWeaponType() { return SMG_WEAPON; }
-			virtual int GetDamage(HitType type, float distance) {
+			std::string GetName() override { return "SMG"; }
+			float GetDelay() override { return 0.1f; }
+			int GetClipSize() override { return 30; }
+			int GetMaxStock() override { return 150; }
+			float GetReloadTime() override { return 2.5f; }
+			bool IsReloadSlow() override { return false; }
+			WeaponType GetWeaponType() override { return SMG_WEAPON; }
+			int GetDamage(HitType type, float distance) override {
 				switch (type) {
 					case HitTypeTorso: return 29;
 					case HitTypeHead: return 75;
@@ -332,24 +332,24 @@ namespace spades {
 					default: SPAssert(false); return 0;
 				}
 			}
-			virtual Vector3 GetRecoil() {
+			Vector3 GetRecoil() override {
 				return MakeVector3(0.00005f, 0.0125f, 0.f);
 			}
-			virtual float GetSpread() { return 0.012f; }
-			virtual int GetPelletSize() { return 1; }
+			float GetSpread() override { return 0.012f; }
+			int GetPelletSize() override { return 1; }
 		};
 
 		class ShotgunWeapon4 : public Weapon {
 		public:
 			ShotgunWeapon4(World *w, Player *p) : Weapon(w, p) {}
-			virtual std::string GetName() { return "Shotgun"; }
-			virtual float GetDelay() { return 0.8f; }
-			virtual int GetClipSize() { return 8; }
-			virtual int GetMaxStock() { return 48; }
-			virtual float GetReloadTime() { return 0.4f; }
-			virtual bool IsReloadSlow() { return true; }
-			virtual WeaponType GetWeaponType() { return SHOTGUN_WEAPON; }
-			virtual int GetDamage(HitType type, float distance) {
+			std::string GetName() override { return "Shotgun"; }
+			float GetDelay() override { return 0.8f; }
+			int GetClipSize() override { return 8; }
+			int GetMaxStock() override { return 48; }
+			float GetReloadTime() override { return 0.4f; }
+			bool IsReloadSlow() override { return true; }
+			WeaponType GetWeaponType() override { return SHOTGUN_WEAPON; }
+			int GetDamage(HitType type, float distance) override {
 				switch (type) {
 					case HitTypeTorso: return 27;
 					case HitTypeHead: return 37;
@@ -359,11 +359,11 @@ namespace spades {
 					default: SPAssert(false); return 0;
 				}
 			}
-			virtual Vector3 GetRecoil() {
+			Vector3 GetRecoil() override {
 				return MakeVector3(0.0002f, 0.075f, 0.f);
 			}
-			virtual float GetSpread() { return 0.036f; }
-			virtual int GetPelletSize() { return 8; }
+			float GetSpread() override { return 0.036f; }
+			int GetPelletSize() override { return 8; }
 		};
 
 		Weapon *Weapon::CreateWeapon(WeaponType type, Player *p, const GameProperties &gp) {

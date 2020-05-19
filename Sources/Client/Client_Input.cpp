@@ -28,6 +28,7 @@
 #include "IAudioDevice.h"
 
 #include "ClientUI.h"
+#include "ChatWindow.h"
 #include "Corpse.h"
 #include "LimboView.h"
 #include "MapView.h"
@@ -71,6 +72,7 @@ DEFINE_SPADES_SETTING(cg_keyGlobalChat, "t");
 DEFINE_SPADES_SETTING(cg_keyTeamChat, "y");
 DEFINE_SPADES_SETTING(cg_keyTwitchChat, "u");
 DEFINE_SPADES_SETTING(cg_keyChatLog, "k");
+DEFINE_SPADES_SETTING(cg_keyZoomChatLog, "h");
 DEFINE_SPADES_SETTING(cg_keyChangeMapScale, "m");
 DEFINE_SPADES_SETTING(cg_keyToggleMapZoom, "n");
 DEFINE_SPADES_SETTING(cg_keyScoreboard, "Tab");
@@ -454,7 +456,7 @@ namespace spades {
 							weapInput.secondary = down;
 						}
 						if (world->GetLocalPlayer()->IsToolWeapon() && weapInput.secondary &&
-						    !lastVal && world->GetLocalPlayer()->IsReadyToUseTool() &&
+						    !lastVal && world->GetLocalPlayer()->GetWeapon()->TimeToNextFire() <= 0 &&
 						    !world->GetLocalPlayer()->GetWeapon()->IsReloading() &&
 						    GetSprintState() == 0.0f) {
 							AudioParam params;
@@ -535,20 +537,19 @@ namespace spades {
 						// global chat
 						scriptedUI->EnterGlobalChatWindow();
 						scriptedUI->setIgnored(name);
-					}
-					else if (CheckKey(cg_keyTeamChat, name) && down) {
+					} else if (CheckKey(cg_keyTeamChat, name) && down) {
 						// team chat
 						scriptedUI->EnterTeamChatWindow();
 						scriptedUI->setIgnored(name);
-					}
-					else if (CheckKey(cg_keyTwitchChat, name) && down) {
+					} else if (CheckKey(cg_keyTwitchChat, name) && down) {
 						// team chat
 						scriptedUI->EnterTwitchChatWindow();
 						scriptedUI->setIgnored(name);
-					}
-					else if (CheckKey(cg_keyChatLog, name) && down) {
+					} else if (CheckKey(cg_keyChatLog, name) && down) {
 						scriptedUI->EnterChatLogWindow();
 						scriptedUI->setIgnored(name);
+					} else if (CheckKey(cg_keyZoomChatLog, name)) {
+						chatWindow->SetExpanded(down);
 					} else if (name == "/" && down) {
 						// command
 						scriptedUI->EnterCommandWindow();

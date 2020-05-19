@@ -31,6 +31,7 @@
 #include <Client/Client.h>
 #include <Core/ConcurrentDispatch.h>
 #include <Core/Debug.h>
+#include <Core/Disposable.h>
 #include <Core/FileManager.h>
 #include <Core/IStream.h>
 #include <Core/Math.h>
@@ -211,12 +212,13 @@ namespace spades {
 					}
 
 					ot += dt;
-					if ((int32_t)dt > 0)
+					if ((int32_t)dt > 0) {
 						view->RunFrame((float)dt / 1000.f);
+						view->RunFrameLate((float)dt / 1000.f);
+					}
 
 					if (view->WantsToBeClosed()) {
 						view->Closing();
-						running = false;
 						SPLog("Close requested by Client");
 						break;
 					}
@@ -311,13 +313,14 @@ namespace spades {
 				SPRaise("Unknown renderer name: %s", r_renderer.CString());
 		}
 
-		class SDLSWPort : public draw::SWPort {
+		class SDLSWPort : public draw::SWPort, public Disposable {
 			SDL_Window *wnd;
 			SDL_Surface *surface;
 			bool adjusted;
 			int actualW, actualH;
 
 			Handle<Bitmap> framebuffer;
+
 			void SetFramebufferBitmap() {
 				if (adjusted) {
 					framebuffer.Set(new Bitmap(actualW, actualH), false);
@@ -328,8 +331,15 @@ namespace spades {
 				}
 			}
 
+			void EnsureSurfaceIsValid() {
+				if (!surface) {
+					SPRaise("The SDL surface associated with this SDLSWPart has already been"
+					        "destroyed.");
+				}
+			}
+
 		protected:
-			virtual ~SDLSWPort() {
+			~SDLSWPort() {
 				if (surface && SDL_MUSTLOCK(surface)) {
 					SDL_UnlockSurface(surface);
 				}
@@ -355,8 +365,17 @@ namespace spades {
 				}
 				SetFramebufferBitmap();
 			}
-			virtual Bitmap *GetFramebuffer() { return framebuffer; }
-			virtual void Swap() {
+
+			void Dispose() override { surface = nullptr; }
+
+			Bitmap *GetFramebuffer() override {
+				EnsureSurfaceIsValid();
+
+				return framebuffer;
+			}
+			void Swap() override {
+				EnsureSurfaceIsValid();
+
 				if (adjusted) {
 					int sy = (surface->h - actualH) >> 1;
 					int sx = (surface->w - actualW) >> 1;
@@ -385,15 +404,21 @@ namespace spades {
 			}
 		};
 
-		client::IRenderer *SDLRunner::CreateRenderer(SDL_Window *wnd) {
+		std::tuple<Handle<client::IRenderer>, Handle<Disposable>>
+		SDLRunner::CreateRenderer(SDL_Window *wnd) {
 			switch (GetRendererType()) {
 				case RendererType::GL: {
-					Handle<SDLGLDevice> glDevice(new SDLGLDevice(wnd), false);
-					return new draw::GLRenderer(glDevice);
+					auto glDevice = Handle<SDLGLDevice>::New(wnd);
+					auto dummy = Handle<Disposable>::New(); // FIXME
+					return std::make_tuple(
+					  Handle<draw::GLRenderer>::New(glDevice).Cast<client::IRenderer>(),
+					  std::move(dummy));
 				}
 				case RendererType::SW: {
-					Handle<SDLSWPort> port(new SDLSWPort(wnd), false);
-					return new draw::SWRenderer(port);
+					auto port = Handle<SDLSWPort>::New(wnd);
+					return std::make_tuple(
+					  Handle<draw::SWRenderer>::New(port).Cast<client::IRenderer>(),
+					  port.Cast<Disposable>());
 				}
 				default: SPRaise("Invalid renderer type");
 			}
@@ -432,7 +457,6 @@ namespace spades {
 						sdlFlags = SDL_WINDOW_OPENGL;
 						SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 						SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
-						SDL_GL_SetSwapInterval(r_vsync);
 						if (!r_allowSoftwareRendering)
 							SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 
@@ -490,10 +514,26 @@ namespace spades {
 				m_active = true;
 
 				{
-					Handle<client::IRenderer> renderer(CreateRenderer(window), false);
+					Handle<client::IRenderer> renderer;
+					Handle<Disposable> windowReference;
+
+					std::tie(renderer, windowReference) = CreateRenderer(window);
+
 					Handle<client::IAudioDevice> audio(CreateAudioDevice(), false);
 
+					if (rtype == RendererType::GL) {
+						if (SDL_GL_SetSwapInterval(r_vsync) != 0) {
+							SPRaise("SDL_GL_SetSwapInterval failed: %s", SDL_GetError());
+						}
+					}
+
 					RunClientLoop(renderer, audio);
+
+					// `SDL_Window` and its associated resources will be inaccessible
+					// past this point. Some referencing objects might be still alive due to
+					// the indeterministic nature of AngelScript's tracing GC, so we explicitly
+					// break such references right now.
+					windowReference->Dispose();
 				}
 			} catch (...) {
 				SDL_Quit();

@@ -649,9 +649,9 @@ namespace spades {
 			for (int i = 0; i < pellets; i++) {
 
 				// AoS 0.75's way (dir2 shouldn't be normalized!)
-				dir2.x += (GetRandom() - GetRandom()) * spread;
-				dir2.y += (GetRandom() - GetRandom()) * spread;
-				dir2.z += (GetRandom() - GetRandom()) * spread;
+				dir2.x += (SampleRandomFloat() - SampleRandomFloat()) * spread;
+				dir2.y += (SampleRandomFloat() - SampleRandomFloat()) * spread;
+				dir2.z += (SampleRandomFloat() - SampleRandomFloat()) * spread;
 				Vector3 dir = dir2.Normalize();
 
 				bulletVectors.push_back(dir);
@@ -720,12 +720,11 @@ namespace spades {
 					// might hit water surface.
 				}
 
-				if (mapResult.hit && GetHorizontalLength(mapResult.hitPos - muzzle) < 128.f &&
-				    (hitPlayer == NULL ||
-				     GetHorizontalLength(mapResult.hitPos - muzzle) < hitPlayerDistance)) {
+				float hLength = GetHorizontalLength(mapResult.hitPos - muzzle);
+				if (mapResult.hit && hLength < 128.f &&
+				    (hitPlayer == NULL || hLength < hitPlayerDistance)) {
 					IntVector3 outBlockCoord = mapResult.hitBlock;
 					// TODO: set correct ray distance
-					// FIXME: why ray casting twice?
 
 					finalHitPos = mapResult.hitPos;
 
@@ -918,7 +917,7 @@ namespace spades {
 				vel = MakeVector3(0, 0, 0);
 			}
 
-			vel += GetVelocty();
+			vel += GetVelocity();
 
 			if (this == world->GetLocalPlayer()) {
 				Grenade *gren = new Grenade(world, muzzle, vel, fuse);

@@ -20,19 +20,26 @@
 
 #pragma once
 
+#include <atomic>
+#include <type_traits>
+#include <typeinfo>
+
 #include "Debug.h"
-#include "Mutex.h"
 
 #define DEBUG_REFCOUNTED_OBJECT_LAST_RELEASE 0
+
+#if DEBUG_REFCOUNTED_OBJECT_LAST_RELEASE
+#include <mutex>
+#endif
 
 namespace spades {
 
 	class RefCountedObject {
-		int refCount;
+		std::atomic<int> refCount;
 #if DEBUG_REFCOUNTED_OBJECT_LAST_RELEASE
 		reflection::BacktraceRecord lastRelease;
 		reflection::BacktraceRecord secondLastRelease;
-		Mutex releaseInfoMutex;
+		std::mutex releaseInfoMutex;
 #endif
 	protected:
 		virtual ~RefCountedObject();
@@ -49,6 +56,9 @@ namespace spades {
 
 	public:
 		Handle(T *ptr, bool add = true) : ptr(ptr) {
+			static_assert(std::is_base_of<RefCountedObject, T>::value,
+			              "T is not based on RefCountedObject");
+
 			if (ptr && add)
 				ptr->AddRef();
 		}
@@ -57,10 +67,22 @@ namespace spades {
 			if (ptr)
 				ptr->AddRef();
 		}
+		Handle(Handle<T> &&h) : ptr(h.MaybeUnmanage()) {}
+
+		template <class S> Handle(Handle<S> &&h) : ptr(h.MaybeUnmanage()) {}
+
+		template <class S> operator Handle<S>() && { return {std::move(*this)}; }
+
 		~Handle() {
 			if (ptr)
 				ptr->Release();
 		}
+
+		template <class... Args> static Handle New(Args &&... args) {
+			T *ptr = new T{std::forward<Args>(args)...};
+			return {ptr, false};
+		}
+
 		T *operator->() {
 			SPAssert(ptr != NULL);
 			return ptr;
@@ -99,6 +121,38 @@ namespace spades {
 			ptr = NULL;
 			return p;
 		}
+		T *MaybeUnmanage() {
+			T *p = ptr;
+			ptr = NULL;
+			return p;
+		}
 		operator bool() { return ptr != NULL; }
+
+		/**
+		 * Attempts to cast this `Handle<T>` to `Handle<S>` using `dynamic_cast`, consuming this
+		 * `Handle<T>`. Throws an exception if the cast was unsuccessful.
+		 */
+		template <class S> Handle<S> Cast() && {
+			static_assert(std::is_base_of<RefCountedObject, S>::value,
+			              "S is not based on RefCountedObject");
+
+			if (!ptr) {
+				return {};
+			}
+
+			S *other = dynamic_cast<S *>(ptr);
+			if (!other) {
+				SPRaise("Invalid cast from %s to %s", typeid(ptr).name(), typeid(S).name());
+			}
+
+			ptr = nullptr;
+			return {other, false};
+		}
+
+		/**
+		 * Attempts to cast this `Handle<T>` to `Handle<S>` using `dynamic_cast`.
+		 * Throws an exception if the cast was unsuccessful.
+		 */
+		template <class S> Handle<S> Cast() const & { return Handle{*this}.Cast<S>(); }
 	};
 }

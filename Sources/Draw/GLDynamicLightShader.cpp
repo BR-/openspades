@@ -93,27 +93,15 @@ namespace spades {
 				dynamicLightProjectionTexture.SetValue(texStage);
 				texStage++;
 
-				dynamicLightSpotMatrix.SetValue(Matrix4::Identity());
+				// The shader samples from a white image. However, we still have to make sure
+				// UV is in a valid range so the fragments are not discarded.
+				dynamicLightSpotMatrix.SetValue(Matrix4::Translate(0.5, 0.5, 0.0) *
+				                                Matrix4::Scale(0.0));
 			}
 
 			device->ActiveTexture(texStage);
 
 			return texStage;
-		}
-
-		bool GLDynamicLightShader::Cull(const GLDynamicLight &light, const spades::AABB3 &box) {
-			// TOOD: more tighter check?
-			// TODO: spotlight check?
-			// TODO: move this function to GLDynamicLight?
-			const client::DynamicLightParam &param = light.GetParam();
-			return box.Inflate(param.radius) && param.origin;
-		}
-
-		bool GLDynamicLightShader::SphereCull(const GLDynamicLight &light,
-		                                      const spades::Vector3 &center, float radius) {
-			const client::DynamicLightParam &param = light.GetParam();
-			float maxDistance = radius + param.radius;
-			return (center - param.origin).GetPoweredLength() < maxDistance * maxDistance;
 		}
 	}
 }

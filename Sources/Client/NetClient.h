@@ -26,6 +26,7 @@
 #include <vector>
 #include <set>
 #include <cstdint>
+#include <unordered_map>
 
 #include "PhysicsConstants.h"
 #include "Player.h"
@@ -52,23 +53,54 @@ namespace spades {
 			NetClientStatusConnected
 		};
 
+		enum NetExtensionType {
+			ExtensionType128Player = 192,
+			ExtensionTypeMessageTypes = 193,
+			ExtensionTypeKickReason = 194,
+		};
+
 		class World;
 		class NetPacketReader;
 		struct PlayerInput;
 		struct WeaponInput;
 		class Grenade;
 		struct GameProperties;
+		class GameMapLoader;
+
 		class NetClient {
 			Client *client;
 			NetClientStatus status;
 			ENetHost *host;
 			ENetPeer *peer;
 			std::string statusString;
-			unsigned int mapSize;
-			std::vector<char> mapData;
+
+			class MapDownloadMonitor {
+				Stopwatch sw;
+				unsigned int numBytesDownloaded;
+				GameMapLoader &mapLoader;
+				bool receivedFirstByte;
+
+			public:
+				MapDownloadMonitor(GameMapLoader &);
+
+				void AccumulateBytes(unsigned int);
+				std::string GetDisplayedText();
+			};
+
+			/** Only valid in the `NetClientStatusReceivingMap` state */
+			std::unique_ptr<GameMapLoader> mapLoader;
+			/** Only valid in the `NetClientStatusReceivingMap` state */
+			std::unique_ptr<MapDownloadMonitor> mapLoadMonitor;
+
 			std::shared_ptr<GameProperties> properties;
 
 			int protocolVersion;
+			/** Extensions supported by both client and server (map of extension id → version) */
+			std::unordered_map<uint8_t, uint8_t> extensions;
+			/** Extensions implemented in this client (map of extension id → version) */
+			std::unordered_map<uint8_t, uint8_t> implementedExtensions{
+			  {ExtensionType128Player, 1},
+			};
 
 			class BandwidthMonitor {
 				ENetHost *host;
@@ -110,7 +142,8 @@ namespace spades {
 			// used for some scripts including Arena by Yourself
 			IntVector3 temporaryPlayerBlockColor;
 
-			bool HandleHandshakePacket(NetPacketReader &);
+			bool HandleHandshakePackets(NetPacketReader &);
+			void HandleExtensionPacket(NetPacketReader &);
 			void HandleGamePacket(NetPacketReader &);
 			World *GetWorld();
 			Player *GetPlayer(int);
@@ -124,6 +157,7 @@ namespace spades {
 
 			void SendVersion();
 			void SendVersionEnhanced(const std::set<std::uint8_t> &propertyIds);
+			void SendSupportedExtensions();
 
 		public:
 			NetClient(Client *);
@@ -131,7 +165,15 @@ namespace spades {
 
 			NetClientStatus GetStatus() { return status; }
 
-			std::string GetStatusString() { return statusString; }
+			std::string GetStatusString();
+
+			/**
+			 * Gets how much portion of the map has completed loading.
+			 * `GetStatus()` must be `NetClientStatusReceivingMap`.
+			 *
+			 * @return A value in range `[0, 1]`.
+			 */
+			float GetMapReceivingProgress();
 
 			/**
 			 * Return a non-null reference to `GameProperties` for this connection.

@@ -70,11 +70,14 @@ namespace spades {
 			bool NeedsAbsoluteMouseCoordinate() override;
 
 			void RunFrame(float dt) override;
+			void RunFrameLate(float dt) override;
 
 			void Closing() override;
-
 			bool WantsToBeClosed() override;
+
+			bool ExecCommand(const Handle<ConsoleCommand> &) override;
+			Handle<ConsoleCommandCandidateIterator>
+			AutocompleteCommandName(const std::string &name) override;
 		};
-		;
-	}
-}
+	} // namespace gui
+} // namespace spades

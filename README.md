@@ -3,7 +3,7 @@
 
 ![OpenSpades banner](https://openspadesmedia.yvt.jp/brand/OpenSpadesBanner.jpg)
 
-[Official website](http://openspades.yvt.jp) — [Download](https://github.com/yvt/openspades/releases) — [Community](http://buildandshoot.com) — [Trello board](https://trello.com/b/3rfpvODj/openspades-roadmap)
+[Official website](https://openspades.yvt.jp) — [Download](https://github.com/yvt/openspades/releases) — [Community](https://buildandshoot.com) — [Trello board](https://trello.com/b/3rfpvODj/openspades-roadmap)
 
 ## What is it?
 OpenSpades is a compatible client of Ace of Spades 0.75.
@@ -19,14 +19,23 @@ OpenSpades is a compatible client of Ace of Spades 0.75.
  2. Or [open an issue](https://github.com/yvt/openspades/issues) if the problem persists
 
 ### On Linux
+
 #### Snap package
 On [snap enabled](https://snapcraft.io/docs/core/install) systems, the latest pre-built stable release of OpenSpades can be installed with:
 
 ```bash
 sudo snap install openspades
 ```
+Once installed, you'll be able to launch OpenSpades from inside the desktop menu or from your terminal with the `openspades`
 
-Once installed, you'll be able to launch OpenSpades from inside the desktop menu or from your terminal with the `openspades` command.
+#### Flatpak package
+On [flatpak enabled](https://flatpak.org/setup/) systems, OpenSpades can be installed with:
+
+```bash
+flatpak install flathub jp.yvt.OpenSpades
+```
+
+Once installed, you'll be able to launch OpenSpades from inside the desktop menu or from your terminal with `flatpak run jp.yvt.OpenSpades`
 
 #### Building and installing from source
 GCC 4.9 / Clang 3.2 or later is recommended because OpenSpades relies on C++11 features heavily.
@@ -36,7 +45,8 @@ GCC 4.9 / Clang 3.2 or later is recommended because OpenSpades relies on C++11 f
    *On Debian-derived distributions*:
    ```
    sudo apt-get install pkg-config libglew-dev libcurl3-openssl-dev libsdl2-dev \
-     libsdl2-image-dev libalut-dev xdg-utils libfreetype6-dev libopus-dev libopusfile-dev cmake
+     libsdl2-image-dev libalut-dev xdg-utils libfreetype6-dev libopus-dev \
+     libopusfile-dev cmake imagemagick
    ```
    (because of a bug in some distributions, you might also
    have to install more packages by `sudo apt-get install libjpeg-dev libxinerama-dev libxft-dev`)
@@ -103,11 +113,11 @@ GCC 4.9 / Clang 3.2 or later is recommended because OpenSpades relies on C++11 f
 10. Download the [Non-free pak](https://github.com/yvt/openspades-paks/releases/download/r33/OpenSpadesDevPackage-r33.zip), extract it, and copy `Nonfree/pak000-Nonfree.pak` to the `Resources` folder inside your build output directory, which is probably `E:/Projects/openspades/openspades.msvc/bin/BUILD_TYPE/Resources`. You can also copy the paks contained in `Official Mods/` folder of OpenSpades 0.0.12b to add more fonts and improve localization support of your build.
 11. Copy `Resources/PackageInfo.json` to the `Resources` folder inside your build output directory.
 
-### On Mac OS X (with Xcode)
+### On macOS (with Xcode)
 1. Get the latest version of Xcode and OpenSpades source.
 2. Get (pre-compiled) copies of libraries, and place them in `Sources/Externals`
   * See the file `Sources/Externals/readme.txt` for details
-4. Download [OS X release of OpenSpades](https://github.com/yvt/openspades/releases), show the package contents, and copy `libysrspades.dylib` to `Sources/Externals/lib`.
+4. Download [macOS release of OpenSpades](https://github.com/yvt/openspades/releases), show the package contents, and copy `libysrspades.dylib` to `Sources/Externals/lib`.
 5. Download and extract the [Non-free pak](https://github.com/yvt/openspades-paks/releases/download/r33/OpenSpadesDevPackage-r33.zip). After that, copy `Nonfree/pak000-Nonfree.pak` and `font-unifont.pak` to `Resources/`.
 6. Open `OpenSpades.xcodeproj` and build.
 

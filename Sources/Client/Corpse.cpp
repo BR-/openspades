@@ -84,20 +84,24 @@ namespace spades {
 				SetNode(Arm2, torso * MakeVector3(-0.2f, -.4f, .2f));
 			}
 
-			SetNode(Head, (nodes[Torso1].pos + nodes[Torso2].pos) * .5f + MakeVector3(0, 0, -0.6f));
+			SetNode(Head,
+			        (nodes[Torso1].pos + nodes[Torso2].pos) * .5f + MakeVector3(0, 0, -0.6f));
 		}
 
-		static float VelNoise() { return (GetRandom() - GetRandom()) * 2.f; }
-
 		void Corpse::SetNode(NodeType n, spades::Vector3 v) {
+			auto velNoise = [&] { return (SampleRandomFloat() - SampleRandomFloat()) * 2.0f; };
+
 			SPAssert(n >= 0);
 			SPAssert(n < NodeCount);
+
 			nodes[n].pos = v;
-			nodes[n].vel = MakeVector3(VelNoise(), VelNoise(), 0.f);
+			nodes[n].vel = MakeVector3(velNoise(), velNoise(), 0.f);
 			nodes[n].lastPos = v;
 			nodes[n].lastForce = MakeVector3(0, 0, 0);
 		}
-		void Corpse::SetNode(NodeType n, spades::Vector4 v) { SetNode(n, v.GetXYZ()); }
+		void Corpse::SetNode(NodeType n, spades::Vector4 v) {
+			SetNode(n, v.GetXYZ());
+		}
 
 		Corpse::~Corpse() {}
 
@@ -497,15 +501,6 @@ namespace spades {
 			LineCollision(Torso2, Arm2, dt);
 			LineCollision(Torso3, Leg1, dt);
 			LineCollision(Torso4, Leg2, dt);
-
-			return;
-			AngleSpring(Torso4, Torso1, Head, 0.5f, 1.f, dt);
-
-			AngleSpring(Torso3, Torso2, Head, 0.5f, 1.f, dt);
-
-			AngleSpring(Torso4, Torso2, Head, 0.5f, 1.f, dt);
-
-			AngleSpring(Torso3, Torso1, Head, 0.5f, 1.f, dt);
 		}
 
 		void Corpse::Update(float dt) {
@@ -623,28 +618,6 @@ namespace spades {
 		}
 
 		void Corpse::AddToScene() {
-			if (false) {
-				// debug line only
-				Vector4 col = {1, 1, 0, 0};
-				renderer->AddDebugLine(nodes[Torso1].pos, nodes[Torso2].pos, col);
-				renderer->AddDebugLine(nodes[Torso2].pos, nodes[Torso3].pos, col);
-				renderer->AddDebugLine(nodes[Torso3].pos, nodes[Torso4].pos, col);
-				renderer->AddDebugLine(nodes[Torso4].pos, nodes[Torso1].pos, col);
-
-				renderer->AddDebugLine(nodes[Torso2].pos, nodes[Torso4].pos, col);
-				renderer->AddDebugLine(nodes[Torso1].pos, nodes[Torso3].pos, col);
-
-				renderer->AddDebugLine(nodes[Torso1].pos, nodes[Arm1].pos, col);
-				renderer->AddDebugLine(nodes[Torso2].pos, nodes[Arm2].pos, col);
-
-				renderer->AddDebugLine(nodes[Torso3].pos, nodes[Leg1].pos, col);
-				renderer->AddDebugLine(nodes[Torso4].pos, nodes[Leg2].pos, col);
-
-				renderer->AddDebugLine((nodes[Torso1].pos + nodes[Torso2].pos) * .5f,
-				                       nodes[Head].pos, col);
-				return;
-			}
-
 			ModelRenderParam param;
 			param.customColor = color;
 

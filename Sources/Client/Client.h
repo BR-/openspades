@@ -1,4 +1,4 @@
-/*
+﻿/*
  Copyright (c) 2013 yvt
  based on code of pysnip (c) Mathias Kaerlev 2011-2012.
 
@@ -25,6 +25,7 @@
 #include <memory>
 #include <string>
 
+#include "ClientCameraMode.h"
 #include "ILocalEntity.h"
 #include "IRenderer.h"
 #include "IWorldListener.h"
@@ -36,7 +37,6 @@
 #include <Core/ServerAddress.h>
 #include <Core/Stopwatch.h>
 #include <Gui/View.h>
-#include "ClientCameraMode.h"
 #include "IImage.h"
 
 namespace spades {
@@ -69,8 +69,6 @@ namespace spades {
 		class ClientPlayer;
 
 		class ClientUI;
-
-		extern std::mt19937_64 mt_engine_client; // randomness generator
 
 		class Client : public IWorldListener, public gui::View {
 			friend class ScoreboardView;
@@ -231,10 +229,10 @@ namespace spades {
 			/** The state of the free floating camera used for spectating. */
 			struct {
 				/** The temporally smoothed position (I guess). */
-				Vector3 position {0.0f, 0.0f, 0.0f};
+				Vector3 position{0.0f, 0.0f, 0.0f};
 
 				/** The temporally smoothed velocity (I guess). */
-				Vector3 velocity {0.0f, 0.0f, 0.0f};
+				Vector3 velocity{0.0f, 0.0f, 0.0f};
 			} freeCameraState;
 
 			/**
@@ -322,6 +320,9 @@ namespace spades {
 			float alertDisappearTime;
 			float alertAppearTime;
 
+			// Loading screen
+			float mapReceivingProgressSmoothed = 0.0;
+
 			std::list<std::unique_ptr<ILocalEntity>> localEntities;
 			std::list<std::unique_ptr<Corpse>> corpses;
 			Corpse *lastMyCorpse;
@@ -403,22 +404,27 @@ namespace spades {
 			static Client *globalInstance; // Global instance
 
 		protected:
-			virtual ~Client();
+			~Client();
 
 		public:
-			Client(IRenderer *, IAudioDevice *, const ServerAddress &host, FontManager *);
+			Client(Handle<IRenderer>, Handle<IAudioDevice>, const ServerAddress &host,
+			       Handle<FontManager>);
 
-			virtual void RunFrame(float dt);
+			void RunFrame(float dt) override;
+			void RunFrameLate(float dt) override;
 
-			virtual void Closing();
-			virtual void MouseEvent(float x, float y);
-			virtual void WheelEvent(float x, float y);
-			virtual void KeyEvent(const std::string &, bool down);
-			virtual void TextInputEvent(const std::string &);
-			virtual void TextEditingEvent(const std::string &, int start, int len);
-			virtual bool AcceptsTextInput();
-			virtual AABB2 GetTextInputRect();
-			virtual bool NeedsAbsoluteMouseCoordinate();
+			void Closing() override;
+			void MouseEvent(float x, float y) override;
+			void WheelEvent(float x, float y) override;
+			void KeyEvent(const std::string &, bool down) override;
+			void TextInputEvent(const std::string &) override;
+			void TextEditingEvent(const std::string &, int start, int len) override;
+			bool AcceptsTextInput() override;
+			AABB2 GetTextInputRect() override;
+			bool NeedsAbsoluteMouseCoordinate() override;
+			bool ExecCommand(const Handle<gui::ConsoleCommand> &) override;
+			Handle<gui::ConsoleCommandCandidateIterator>
+			AutocompleteCommandName(const std::string &name) override;
 
 			void SetWorld(World *);
 			World *GetWorld() const { return world.get(); }
@@ -430,7 +436,7 @@ namespace spades {
 			SceneDefinition GetLastSceneDef() { return lastSceneDef; }
 			IAudioDevice *GetAudioDevice() { return audioDevice; }
 
-			virtual bool WantsToBeClosed();
+			bool WantsToBeClosed() override;
 			bool IsMuted();
 
 			void PlayerSentChatMessage(Player *, bool global, const std::string &);
@@ -452,38 +458,38 @@ namespace spades {
 			void PlayerJoinedTeam(Player *);
 			void PlayerSpawned(Player *);
 
-			virtual void PlayerObjectSet(int);
-			virtual void PlayerMadeFootstep(Player *);
-			virtual void PlayerJumped(Player *);
-			virtual void PlayerLanded(Player *, bool hurt);
-			virtual void PlayerFiredWeapon(Player *);
-			virtual void PlayerDryFiredWeapon(Player *);
-			virtual void PlayerReloadingWeapon(Player *);
-			virtual void PlayerReloadedWeapon(Player *);
-			virtual void PlayerChangedTool(Player *);
-			virtual void PlayerThrownGrenade(Player *, Grenade *);
-			virtual void PlayerMissedSpade(Player *);
-			virtual void PlayerRestocked(Player *);
+			void PlayerObjectSet(int) override;
+			void PlayerMadeFootstep(Player *) override;
+			void PlayerJumped(Player *) override;
+			void PlayerLanded(Player *, bool hurt) override;
+			void PlayerFiredWeapon(Player *) override;
+			void PlayerDryFiredWeapon(Player *) override;
+			void PlayerReloadingWeapon(Player *) override;
+			void PlayerReloadedWeapon(Player *) override;
+			void PlayerChangedTool(Player *) override;
+			void PlayerThrownGrenade(Player *, Grenade *) override;
+			void PlayerMissedSpade(Player *) override;
+			void PlayerRestocked(Player *) override;
 
 			/** @deprecated use BulletHitPlayer */
-			virtual void PlayerHitBlockWithSpade(Player *, Vector3 hitPos, IntVector3 blockPos,
-			                                     IntVector3 normal);
-			virtual void PlayerKilledPlayer(Player *killer, Player *victim, KillType);
+			void PlayerHitBlockWithSpade(Player *, Vector3 hitPos, IntVector3 blockPos,
+			                             IntVector3 normal) override;
+			void PlayerKilledPlayer(Player *killer, Player *victim, KillType) override;
 
-			virtual void BulletHitPlayer(Player *hurtPlayer, HitType, Vector3 hitPos, Player *by);
-			virtual void BulletHitBlock(Vector3, IntVector3 blockPos, IntVector3 normal);
-			virtual void AddBulletTracer(Player *player, Vector3 muzzlePos, Vector3 hitPos);
-			virtual void GrenadeExploded(Grenade *);
-			virtual void GrenadeBounced(Grenade *);
-			virtual void GrenadeDroppedIntoWater(Grenade *);
+			void BulletHitPlayer(Player *hurtPlayer, HitType, Vector3 hitPos, Player *by) override;
+			void BulletHitBlock(Vector3, IntVector3 blockPos, IntVector3 normal) override;
+			void AddBulletTracer(Player *player, Vector3 muzzlePos, Vector3 hitPos) override;
+			void GrenadeExploded(Grenade *) override;
+			void GrenadeBounced(Grenade *) override;
+			void GrenadeDroppedIntoWater(Grenade *) override;
 
-			virtual void BlocksFell(std::vector<IntVector3>);
+			void BlocksFell(std::vector<IntVector3>) override;
 
-			virtual void LocalPlayerPulledGrenadePin();
-			virtual void LocalPlayerBlockAction(IntVector3, BlockActionType type);
-			virtual void LocalPlayerCreatedLineBlock(IntVector3, IntVector3);
-			virtual void LocalPlayerHurt(HurtType type, bool sourceGiven, Vector3 source);
-			virtual void LocalPlayerBuildError(BuildFailureReason reason);
+			void LocalPlayerPulledGrenadePin() override;
+			void LocalPlayerBlockAction(IntVector3, BlockActionType type) override;
+			void LocalPlayerCreatedLineBlock(IntVector3, IntVector3) override;
+			void LocalPlayerHurt(HurtType type, bool sourceGiven, Vector3 source) override;
+			void LocalPlayerBuildError(BuildFailureReason reason) override;
 
 			// helper functions
 			bool IsFollowing();
@@ -492,5 +498,5 @@ namespace spades {
 			static bool WallhackActive();
 			static spades::Vector3 TeamCol(unsigned int teamId);
 		};
-	}
-}
+	} // namespace client
+} // namespace spades

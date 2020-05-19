@@ -20,7 +20,6 @@
 
 #include "RefCountedObject.h"
 #include <ScriptBindings/ScriptManager.h>
-#include "AutoLocker.h"
 #include "Exception.h"
 
 namespace spades {
@@ -28,20 +27,20 @@ namespace spades {
 
 	RefCountedObject::~RefCountedObject() {}
 
-	void RefCountedObject::AddRef() { asAtomicInc(refCount); }
+	void RefCountedObject::AddRef() { refCount.fetch_add(1); }
 
 	void RefCountedObject::Release() {
 #if DEBUG_REFCOUNTED_OBJECT_LAST_RELEASE
-		AutoLocker guard(&releaseInfoMutex);
+		std::lock_guard<std::mutex> guard{releaseInfoMutex};
 #endif
-		int cnt = asAtomicDec(refCount);
-		if (cnt == 0) {
+		int cnt = refCount.fetch_sub(1);
+		if (cnt == 1) {
 #if DEBUG_REFCOUNTED_OBJECT_LAST_RELEASE
 
 #else
 			delete this;
 #endif
-		} else if (cnt < 0)
+		} else if (cnt < 1)
 #if DEBUG_REFCOUNTED_OBJECT_LAST_RELEASE
 			SPRaise("Attempted to release already destroyed object\n===== LAST RELEASE BACKTRACE "
 			        "=====\n%s\n===== SECOND LAST RELEASE BACKTRACE =====\n%s\n===== LAST RELEASE "

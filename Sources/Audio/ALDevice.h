@@ -39,11 +39,13 @@ namespace spades {
 
 		public:
 			ALDevice();
-			virtual ~ALDevice();
+			~ALDevice();
 
 			static bool TryLoad();
 
 			client::IAudioChunk *RegisterSound(const char *name) override;
+
+			void ClearCache() override;
 
 			void SetGameMap(client::GameMap *) override;
 

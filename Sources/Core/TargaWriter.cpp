@@ -54,6 +54,11 @@ typedef unsigned __int32 uint32_t;
 
 #define BIT(index) (1 << (index))
 
+#ifdef htole16
+# undef htole16
+# undef letoh16
+#endif
+
 #ifdef _BIG_ENDIAN
 # define htole16(x) ( (((x) & 0x00FF) << 8) | (((x) & 0xFF00) >> 8) )
 # define letoh16(x) htole16(x)
@@ -1288,24 +1293,24 @@ void tga_free_buffers(tga_image *img)
 namespace spades {
     class TargaWriter : public IBitmapCodec {
     public:
-        virtual bool CanLoad() { return false; }
-        virtual bool CanSave() { return true; }
+        bool CanLoad() override { return false; }
+        bool CanSave() override { return true; }
 
-        virtual bool CheckExtension(const std::string &filename) {
+        bool CheckExtension(const std::string &filename) override {
             return EndsWith(filename, ".tga");
         }
 
-        virtual std::string GetName() {
+        std::string GetName() override {
             static std::string name("dmr.ath.cx Targa Exporter");
             return name;
         }
 
-        virtual Bitmap *Load(IStream *str) {
+        Bitmap *Load(IStream *str) override {
             SPADES_MARK_FUNCTION();
 
-            SPNotImplemented();
+			SPUnreachable();
         }
-        virtual void Save(IStream *stream, Bitmap *bmp) {
+        void Save(IStream *stream, Bitmap *bmp) override {
             SPADES_MARK_FUNCTION();
 
             tga_image img;

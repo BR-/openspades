@@ -664,7 +664,7 @@ void CScriptArray::RemoveRange(asUINT start, asUINT count)
 	// Compact the elements
 	// As objects in arrays of objects are not stored inline, it is safe to use memmove here
 	// since we're just copying the pointers to objects and not the actual objects.
-	memmove(buffer->data + start*elementSize, buffer->data + (start + count)*elementSize, count*elementSize);
+	memmove(buffer->data + start*elementSize, buffer->data + (start + count)*elementSize, (buffer->numElements - count)*elementSize);
 	buffer->numElements -= count;
 }
 
@@ -1719,14 +1719,14 @@ void CScriptArray::AddRef() const
 {
 	// Clear the GC flag then increase the counter
 	gcFlag = false;
-	asAtomicInc(refCount);
+	refCount.fetch_add(1);
 }
 
 void CScriptArray::Release() const
 {
 	// Clearing the GC flag then descrease the counter
 	gcFlag = false;
-	if( asAtomicDec(refCount) == 0 )
+	if( refCount.fetch_sub(1) == 1 )
 	{
 		// When reaching 0 no more references to this instance
 		// exists and the object should be destroyed

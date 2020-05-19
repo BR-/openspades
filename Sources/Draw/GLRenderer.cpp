@@ -257,6 +257,12 @@ namespace spades {
 			return modelManager->RegisterModel(filename);
 		}
 
+		void GLRenderer::ClearCache() {
+			SPADES_MARK_FUNCTION();
+			modelManager->ClearCache();
+			imageManager->ClearCache();
+		}
+
 		client::IImage *GLRenderer::CreateImage(spades::Bitmap *bmp) {
 			SPADES_MARK_FUNCTION();
 			return GLImage::FromBitmap(bmp, device);
@@ -659,7 +665,7 @@ namespace spades {
 						mapRenderer->Prerender();
 					}
 					if (needsFullDepthPrepass) {
-						modelRenderer->Prerender();
+						modelRenderer->Prerender(false);
 					}
 				}
 
@@ -689,7 +695,7 @@ namespace spades {
 				if (!sceneDef.skipWorld && mapRenderer) {
 					mapRenderer->RenderSunlightPass();
 				}
-				modelRenderer->RenderSunlightPass();
+				modelRenderer->RenderSunlightPass(false);
 			}
 			if (settings.r_ssao) {
 				device->BindTexture(IGLDevice::Texture2D, ssaoBufferTexture);
@@ -747,6 +753,32 @@ namespace spades {
 				device->DepthFunc(IGLDevice::Less);
 				RenderDebugLines();
 			}
+		}
+
+		void GLRenderer::RenderGhosts() {
+			// Run a depth-only pass so that for each pixel, objects are drawn
+			// only once
+			{
+				GLProfiler::Context p(*profiler, "Depth-only Prepass");
+				device->DepthFunc(IGLDevice::Less);
+				modelRenderer->Prerender(true);
+			}
+
+			// Run a color pass
+			{
+				GLProfiler::Context p(*profiler, "Ghost Pass");
+
+				device->Enable(IGLDevice::Blend, true);
+				device->DepthMask(false);
+				device->BlendFunc(IGLDevice::SrcAlpha, IGLDevice::OneMinusSrcAlpha, IGLDevice::Zero,
+				                  IGLDevice::One);
+				device->DepthFunc(IGLDevice::Equal);
+				modelRenderer->RenderSunlightPass(true);
+			}
+			device->DepthMask(true);
+			device->DepthFunc(IGLDevice::Less);
+			device->Enable(IGLDevice::Blend, false);
+			device->Enable(IGLDevice::CullFace, false);
 		}
 
 		void GLRenderer::EndScene() {
@@ -1001,6 +1033,11 @@ namespace spades {
 				GLProfiler::Context p(*profiler, "Water");
 				waterRenderer->Update(dt);
 				waterRenderer->Render();
+			}
+
+			{
+				GLProfiler::Context p(*profiler, "Ghosts");
+				RenderGhosts();
 			}
 
 			device->Enable(IGLDevice::Blend, true);

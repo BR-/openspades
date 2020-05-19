@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2013 yvt
+ Copyright (c) 2018 yvt
 
  This file is part of OpenSpades.
 
@@ -17,5 +17,18 @@
  along with OpenSpades.  If not, see <http://www.gnu.org/licenses/>.
 
  */
+#pragma once
 
-#include "AutoLocker.h"
+#include "RefCountedObject.h"
+
+namespace spades {
+
+	/**
+	 * Implements explicit finalization semantics.
+	 */
+	class Disposable: public virtual RefCountedObject {
+	public:
+		virtual void Dispose() {}
+	};
+
+}

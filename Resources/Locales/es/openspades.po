@@ -3,13 +3,13 @@ msgstr ""
 "Project-Id-Version: openspades\n"
 "Report-Msgid-Bugs-To: i at yvt.jp\n"
 "POT-Creation-Date: 2016-12-25 23:47-0200\n"
-"PO-Revision-Date: 2017-12-31 04:46-0500\n"
-"Last-Translator: yvt <i@yvt.jp>\n"
+"PO-Revision-Date: 2020-04-19 14:46\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: crowdin.com\n"
+"X-Generator: Poedit 1.8.7.1\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Crowdin-Project: openspades\n"
@@ -38,7 +38,7 @@ msgstr "Error en el guardado del mapa: {0}"
 #: Sources/Client/Client.cpp:633 Sources/Client/Client.cpp:634
 msgctxt "Client"
 msgid "[Global] "
-msgstr ""
+msgstr "[Global] "
 
 #: Sources/Client/Client_Draw.cpp:119 Sources/Client/Client_Draw.cpp:135
 msgctxt "Client"
@@ -221,54 +221,54 @@ msgstr "-- bloques"
 #: Sources/Client/Client_Update.cpp:868 Sources/Client/LimboView.cpp:68
 msgctxt "Client"
 msgid "Rifle"
-msgstr ""
+msgstr "Rifle"
 
 #: Sources/Client/Client_Update.cpp:843 Sources/Client/LimboView.cpp:71
 #: Sources/Client/Client_Update.cpp:869 Sources/Client/LimboView.cpp:71
 msgctxt "Client"
 msgid "SMG"
-msgstr ""
+msgstr "SMG"
 
 #: Sources/Client/Client_Update.cpp:844 Sources/Client/LimboView.cpp:74
 #: Sources/Client/Client_Update.cpp:870 Sources/Client/LimboView.cpp:74
 msgctxt "Client"
 msgid "Shotgun"
-msgstr ""
+msgstr "Escopeta"
 
 #. ! A cause of death shown in the kill feed.
 #: Sources/Client/Client_Update.cpp:849 Sources/Client/Client_Update.cpp:875
 msgctxt "Client"
 msgid "Fall"
-msgstr ""
+msgstr "Caida"
 
 #. ! A cause of death shown in the kill feed.
 #: Sources/Client/Client_Update.cpp:853 Sources/Client/Client_Update.cpp:879
 msgctxt "Client"
 msgid "Melee"
-msgstr ""
+msgstr "Cuerpo a cuerpo"
 
 #: Sources/Client/Client_Update.cpp:856 Sources/Client/Client_Update.cpp:882
 msgctxt "Client"
 msgid "Grenade"
-msgstr ""
+msgstr "Granada"
 
 #. ! A cause of death shown in the kill feed.
 #: Sources/Client/Client_Update.cpp:860 Sources/Client/Client_Update.cpp:886
 msgctxt "Client"
 msgid "Headshot"
-msgstr ""
+msgstr "Disparo en la Cabeza"
 
 #. ! A cause of death shown in the kill feed.
 #: Sources/Client/Client_Update.cpp:864 Sources/Client/Client_Update.cpp:890
 msgctxt "Client"
 msgid "Team Change"
-msgstr ""
+msgstr "Cambio de equipo"
 
 #. ! A cause of death shown in the kill feed.
 #: Sources/Client/Client_Update.cpp:868 Sources/Client/Client_Update.cpp:894
 msgctxt "Client"
 msgid "Weapon Change"
-msgstr ""
+msgstr "Cambio de arma"
 
 #: Sources/Client/Client_Update.cpp:907 Sources/Client/Client_Update.cpp:933
 msgctxt "Client"
@@ -352,7 +352,7 @@ msgstr "Aún cargando"
 #: Sources/Client/NetClient.cpp:678 Sources/Client/NetClient.cpp:683
 msgctxt "NetClient"
 msgid "Error"
-msgstr ""
+msgstr "Error"
 
 #: Sources/Client/NetClient.cpp:702 Sources/Client/NetClient.cpp:749
 msgctxt "NetClient"
@@ -462,7 +462,7 @@ msgstr "Chat de texto"
 #: Resources/Scripts/Gui/ClientUI.as:508 Resources/Scripts/Gui/ClientUI.as:508
 msgctxt "Client"
 msgid "Global"
-msgstr ""
+msgstr "Global"
 
 #: Resources/Scripts/Gui/ClientUI.as:517 Resources/Scripts/Gui/ClientUI.as:517
 msgctxt "Client"
@@ -538,7 +538,7 @@ msgstr "Conexión rapida"
 #: Resources/Scripts/Gui/MainScreen.as:447
 msgctxt "MainScreen"
 msgid "0.75"
-msgstr ""
+msgstr "0.75"
 
 #: Resources/Scripts/Gui/MainScreen.as:403
 #: Resources/Scripts/Gui/MainScreen.as:456
@@ -546,7 +546,7 @@ msgstr ""
 #: Resources/Scripts/Gui/MainScreen.as:456
 msgctxt "MainScreen"
 msgid "0.76"
-msgstr ""
+msgstr "0,76"
 
 #: Resources/Scripts/Gui/MainScreen.as:411
 #: Resources/Scripts/Gui/MainScreen.as:411
@@ -614,13 +614,13 @@ msgstr "Modo"
 #: Resources/Scripts/Gui/MainScreen.as:522
 msgctxt "MainScreen"
 msgid "Ver."
-msgstr ""
+msgstr "Ver."
 
 #: Resources/Scripts/Gui/MainScreen.as:529
 #: Resources/Scripts/Gui/MainScreen.as:529
 msgctxt "MainScreen"
 msgid "Loc."
-msgstr ""
+msgstr "Pos."
 
 #: Resources/Scripts/Gui/MainScreen.as:787
 #: Resources/Scripts/Gui/MainScreen.as:787
@@ -706,25 +706,25 @@ msgstr "Sin Asignar"
 #: Resources/Scripts/Gui/Preferences.as:423
 msgctxt "Preferences"
 msgid "Shift"
-msgstr ""
+msgstr "Shift"
 
 #: Resources/Scripts/Gui/Preferences.as:425
 #: Resources/Scripts/Gui/Preferences.as:425
 msgctxt "Preferences"
 msgid "Control"
-msgstr ""
+msgstr "Control"
 
 #: Resources/Scripts/Gui/Preferences.as:427
 #: Resources/Scripts/Gui/Preferences.as:427
 msgctxt "Preferences"
 msgid "Meta"
-msgstr ""
+msgstr "Meta"
 
 #: Resources/Scripts/Gui/Preferences.as:429
 #: Resources/Scripts/Gui/Preferences.as:429
 msgctxt "Preferences"
 msgid "Alt"
-msgstr ""
+msgstr "Alt"
 
 #: Resources/Scripts/Gui/Preferences.as:431
 #: Resources/Scripts/Gui/Preferences.as:431
@@ -810,7 +810,7 @@ msgstr "Sangre"
 #: Resources/Scripts/Gui/Preferences.as:644
 msgctxt "Preferences"
 msgid "Ejecting Brass"
-msgstr ""
+msgstr "Eyectar cartuchos de bala"
 
 #: Resources/Scripts/Gui/Preferences.as:645
 #: Resources/Scripts/Gui/Preferences.as:645
@@ -1160,7 +1160,7 @@ msgstr "Graficos"
 #: Resources/Scripts/Gui/StartupScreen.as:212
 msgctxt "StartupScreen"
 msgid "Audio"
-msgstr ""
+msgstr "Audio"
 
 #: Resources/Scripts/Gui/StartupScreen.as:213
 #: Resources/Scripts/Gui/StartupScreen.as:213
@@ -1186,7 +1186,7 @@ msgstr "Avanzado"
 #: Resources/Scripts/Gui/StartupScreen.as:288
 msgctxt "StartupScreen"
 msgid "An unknown error has occurred while opening the update info website."
-msgstr ""
+msgstr "Un error desconocido ha ocurrido mientras se abría el sitio web de información de actualización."
 
 #: Resources/Scripts/Gui/StartupScreen.as:853
 #: Resources/Scripts/Gui/StartupScreen.as:853
@@ -1236,7 +1236,7 @@ msgstr "Renderizado"
 #: Resources/Scripts/Gui/StartupScreen.as:1113
 msgctxt "StartupScreen"
 msgid "OpenGL"
-msgstr ""
+msgstr "OpenGL"
 
 #: Resources/Scripts/Gui/StartupScreen.as:1117
 #: Resources/Scripts/Gui/StartupScreen.as:1117
@@ -1248,7 +1248,7 @@ msgstr "Procesador OpenGL utiliza el acelerador  de gráficos del ordenador para
 #: Resources/Scripts/Gui/StartupScreen.as:1125
 msgctxt "StartupScreen"
 msgid "Software"
-msgstr ""
+msgstr "Software"
 
 #: Resources/Scripts/Gui/StartupScreen.as:1129
 #: Resources/Scripts/Gui/StartupScreen.as:1129
@@ -1420,7 +1420,7 @@ msgstr "Alto"
 #: Resources/Scripts/Gui/StartupScreen.as:1253
 msgctxt "StartupScreen"
 msgid "Ultra"
-msgstr ""
+msgstr "Ultra"
 
 #: Resources/Scripts/Gui/StartupScreen.as:1195
 #: Resources/Scripts/Gui/StartupScreen.as:1195
@@ -1540,7 +1540,7 @@ msgstr "Configuraciones de audio"
 #: Resources/Scripts/Gui/StartupScreen.as:1495
 msgctxt "StartupScreen"
 msgid "OpenAL"
-msgstr ""
+msgstr "OpenAL"
 
 #: Resources/Scripts/Gui/StartupScreen.as:1499
 #: Resources/Scripts/Gui/StartupScreen.as:1499
@@ -1552,7 +1552,7 @@ msgstr "Usa una tarjeta de sonido compatible con OpenAL para procesar el sonido.
 #: Resources/Scripts/Gui/StartupScreen.as:1508
 msgctxt "StartupScreen"
 msgid "YSR"
-msgstr ""
+msgstr "YSR"
 
 #: Resources/Scripts/Gui/StartupScreen.as:1512
 #: Resources/Scripts/Gui/StartupScreen.as:1512
@@ -1591,7 +1591,7 @@ msgstr "Especifica cuántos sonidos se pueden reproducir simultáneamente. Un va
 #: Resources/Scripts/Gui/StartupScreen.as:1546
 msgctxt "StartupScreen"
 msgid "EAX"
-msgstr ""
+msgstr "EAX"
 
 #: Resources/Scripts/Gui/StartupScreen.as:1547
 #: Resources/Scripts/Gui/StartupScreen.as:1547
@@ -1689,7 +1689,7 @@ msgstr "Desconocido ({0})"
 #: Resources/Scripts/Gui/StartupScreen.as:1764
 msgctxt "StartupScreen"
 msgid "System default"
-msgstr ""
+msgstr "Predeterminado por el sistema"
 
 #: Resources/Scripts/Gui/StartupScreen.as:1813
 #: Resources/Scripts/Gui/StartupScreen.as:1813
@@ -1713,83 +1713,83 @@ msgstr "Filtro"
 #: Resources/Scripts/Gui/UpdateCheckView.as:40
 msgctxt "UpdateCheck"
 msgid "Enable"
-msgstr ""
+msgstr "Habilitar"
 
 #: Resources/Scripts/Gui/UpdateCheckView.as:47
 #: Resources/Scripts/Gui/UpdateCheckView.as:47
 msgctxt "UpdateCheck"
 msgid "Show details..."
-msgstr ""
+msgstr "Mostrar detalles..."
 
 #: Resources/Scripts/Gui/UpdateCheckView.as:102
 #: Resources/Scripts/Gui/UpdateCheckView.as:102
 msgctxt "UpdateCheck"
 msgid "Version {0} is available! (You currently have {1})"
-msgstr ""
+msgstr "¡La nueva versión {0} está disponible! (Actualmente tienes la {1})"
 
 #: Resources/Scripts/Gui/UpdateCheckView.as:105
 #: Resources/Scripts/Gui/UpdateCheckView.as:105
 msgctxt "UpdateCheck"
 msgid "You're using the latest version of OpenSpades. ({0})"
-msgstr ""
+msgstr "Estás utilizando la versión más reciente de OpenSpades. ({0})"
 
 #: Resources/Scripts/Gui/UpdateCheckView.as:110
 #: Resources/Scripts/Gui/UpdateCheckView.as:110
 msgctxt "UpdateCheck"
 msgid "Checking for updates..."
-msgstr ""
+msgstr "Buscando actualizaciones..."
 
 #: Resources/Scripts/Gui/UpdateCheckView.as:113
 #: Resources/Scripts/Gui/UpdateCheckView.as:113
 msgctxt "UpdateCheck"
 msgid "Failed to check for updates."
-msgstr ""
+msgstr "Búsqueda de actualizaciones fallida."
 
 #: Resources/Scripts/Gui/UpdateCheckView.as:116
 #: Resources/Scripts/Gui/UpdateCheckView.as:116
 msgctxt "UpdateCheck"
 msgid "Automatic update check is not enabled."
-msgstr ""
+msgstr "La comprobación automática de nuevas actualizaciones no está habilitada."
 
 #: Resources/Scripts/Gui/UpdateCheckView.as:119
 #: Resources/Scripts/Gui/UpdateCheckView.as:119
 msgctxt "UpdateCheck"
 msgid "Automatic update check is not available."
-msgstr ""
+msgstr "La comprobación automática de nuevas actualizaciones no está disponible."
 
 #: Sources/Client/Client_NetHandler.cpp:258
 #: Sources/Client/Client_NetHandler.cpp:271
 msgctxt "Client"
 msgid "Spectator"
-msgstr ""
+msgstr "Espectador"
 
 #: Sources/Client/Client_Draw.cpp:99
 msgctxt "Client"
 msgid "Unbound"
-msgstr ""
+msgstr "Sin Asignar"
 
 #: Sources/Client/Client_Draw.cpp:655
 msgctxt "Client"
 msgid "[{0}] Cycle camera mode"
-msgstr ""
+msgstr "[{0}] Vista en 3ra persona"
 
 #: Sources/Client/Client_Draw.cpp:657
 msgctxt "Client"
 msgid "[{0}/{1}] Next/previous player"
-msgstr ""
+msgstr "[{0}/{1}] Siguiente/anterior jugador"
 
 #: Sources/Client/Client_Draw.cpp:661
 msgctxt "Client"
 msgid "[{0}] Unfollow"
-msgstr ""
+msgstr "[{0}] Dejar de seguir"
 
 #: Sources/Client/Client_Draw.cpp:664
 msgctxt "Client"
 msgid "[{0}/{1}] Follow a player"
-msgstr ""
+msgstr "[{0}/{1}] Seguir a un jugador"
 
 #: Sources/Client/Client_Draw.cpp:669
 msgctxt "Client"
 msgid "[{0}/{1}] Go up/down"
-msgstr ""
+msgstr "[{0}/{1}] Ir arriba/abajo"
 

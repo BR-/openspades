@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2013 yvt
+ Copyright (c) 2019 yvt
 
  This file is part of OpenSpades.
 
@@ -17,16 +17,18 @@
  along with OpenSpades.  If not, see <http://www.gnu.org/licenses/>.
 
  */
+#include <tuple>
 
-#include "Mutex.h"
-#include <Imports/SDL.h>
+#include <Core/IStream.h>
 
 namespace spades {
-	Mutex::Mutex() { priv = (void *)SDL_CreateMutex(); }
-
-	Mutex::~Mutex() { SDL_DestroyMutex((SDL_mutex *)priv); }
-
-	void Mutex::Lock() { SDL_mutexP((SDL_mutex *)priv); }
-
-	void Mutex::Unlock() { SDL_mutexV((SDL_mutex *)priv); }
-}
+	/**
+	 * Create a pipe and return a pair of streams for writing and reading,
+	 * respectively.
+	 *
+	 * Hanging up behaviours:
+	 *  - If the writer hangs up, the reader will get an EOF for further reads.
+	 *  - If the reader hangs up, the writer silently discards the written data.
+	 */
+	std::tuple<IStream *, IStream *> CreatePipeStream();
+} // namespace spades

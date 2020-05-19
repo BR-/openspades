@@ -83,11 +83,11 @@ namespace spades {
 
 			static void PreloadShaders(GLRenderer *);
 
-			void Prerender(std::vector<client::ModelRenderParam> params) override;
+			void Prerender(std::vector<client::ModelRenderParam> params, bool ghostPass) override;
 
 			void RenderShadowMapPass(std::vector<client::ModelRenderParam> params) override;
 
-			void RenderSunlightPass(std::vector<client::ModelRenderParam> params, bool farRender) override;
+			void RenderSunlightPass(std::vector<client::ModelRenderParam> params, bool farRender, bool ghostPass) override;
 
 			void RenderDynamicLightPass(std::vector<client::ModelRenderParam> params,
 			                            std::vector<GLDynamicLight> lights, bool farRender) override;

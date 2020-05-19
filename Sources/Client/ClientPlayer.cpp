@@ -18,14 +18,15 @@
 
  */
 
+#include <algorithm>
 #include <array>
+#include <cmath>
 #include <cstdlib>
 
 #include "CTFGameMode.h"
 #include "Client.h"
 #include "ClientPlayer.h"
 #include "GameMap.h"
-#include "GunCasing.h"
 #include "GunCasing.h"
 #include "IAudioChunk.h"
 #include "IAudioDevice.h"
@@ -112,15 +113,31 @@ namespace spades {
 				}
 			}
 
-			void RenderModel(IModel *model, const ModelRenderParam &p) {
+			void RenderModel(IModel *model, const ModelRenderParam &_p) {
+				ModelRenderParam p = _p;
+
 				if (!model) {
 					SPInvalidArgument("model");
 					return;
 				}
+
 				if (p.depthHack && !allowDepthHack) {
 					OnProhibitedAction();
 					return;
 				}
+
+				// Overbright surfaces bypass the fog
+				p.customColor.x = std::max(std::min(p.customColor.x, 1.0f), 0.0f);
+				p.customColor.y = std::max(std::min(p.customColor.y, 1.0f), 0.0f);
+				p.customColor.z = std::max(std::min(p.customColor.z, 1.0f), 0.0f);
+
+				// NaN values bypass the fog
+				if (std::isnan(p.customColor.x) || std::isnan(p.customColor.y) ||
+				    std::isnan(p.customColor.z)) {
+					OnProhibitedAction();
+					return;
+				}
+
 				auto bounds = (p.matrix * OBB3(model->GetBoundingBox())).GetBoundingAABB();
 				if (CheckVisibility(bounds)) {
 					base->RenderModel(model, p);
@@ -217,6 +234,7 @@ namespace spades {
 			time = 0.f;
 			viewWeaponOffset = MakeVector3(0, 0, 0);
 			lastFront = MakeVector3(0, 0, 0);
+			flashlightOrientation = p->GetFront();
 
 			ScriptContextHandle ctx;
 			IRenderer *renderer = client->GetRenderer();
@@ -320,8 +338,6 @@ namespace spades {
 
 			PlayerInput actualInput = player->GetInput();
 			WeaponInput actualWeapInput = player->GetWeaponInput();
-			Vector3 vel = player->GetVelocty();
-			vel.z = 0.f;
 			if (actualInput.sprint && player->IsAlive()) {
 				sprintState += dt * 4.f;
 				if (sprintState > 1.f)
@@ -409,7 +425,7 @@ namespace spades {
 
 			{
 				float scale = dt;
-				Vector3 vel = player->GetVelocty();
+				Vector3 vel = player->GetVelocity();
 				Vector3 front = player->GetFront();
 				Vector3 right = player->GetRight();
 				Vector3 up = player->GetUp();
@@ -458,6 +474,19 @@ namespace spades {
 					softLimitFunc(viewWeaponOffset.x, -limitX, limitX);
 					softLimitFunc(viewWeaponOffset.z, 0, limitY);
 				}
+			}
+
+			{
+				// Smooth the flashlight's movement
+				Vector3 diff = player->GetFront() - flashlightOrientation;
+				float sq = diff.GetLength();
+				if (sq > 0.1) {
+					flashlightOrientation += diff.Normalize() * (sq - 0.1);
+				}
+
+				flashlightOrientation =
+				  Mix(flashlightOrientation, player->GetFront(), 1.0f - powf(1.0e-6, dt))
+				    .Normalize();
 			}
 
 			// FIXME: should do for non-active skins?
@@ -612,6 +641,16 @@ namespace spades {
 			}
 		}
 
+		std::array<Vector3, 3> ClientPlayer::GetFlashlightAxes() {
+			std::array<Vector3, 3> axes;
+
+			axes[2] = flashlightOrientation;
+			axes[0] = Vector3::Cross(flashlightOrientation, player->GetUp()).Normalize();
+			axes[1] = Vector3::Cross(axes[0], axes[2]);
+
+			return axes;
+		}
+
 		void ClientPlayer::AddToSceneFirstPersonView() {
 			Player *p = player;
 			IRenderer *renderer = client->GetRenderer();
@@ -635,9 +674,7 @@ namespace spades {
 				light.radius = 40.f;
 				light.type = DynamicLightTypeSpotlight;
 				light.spotAngle = 30.f * M_PI / 180.f;
-				light.spotAxis[0] = p->GetRight();
-				light.spotAxis[1] = p->GetUp();
-				light.spotAxis[2] = p->GetFront();
+				light.spotAxis = GetFlashlightAxes();
 				light.image = renderer->RegisterImage("Gfx/Spotlight.png");
 				renderer->AddLight(light);
 
@@ -666,7 +703,7 @@ namespace spades {
 			{
 				float sp = 1.f - aimDownState;
 				sp *= .3f;
-				sp *= std::min(1.f, p->GetVelocty().GetLength() * 5.f);
+				sp *= std::min(1.f, p->GetVelocity().GetLength() * 5.f);
 				viewWeaponOffset.x +=
 				  sinf(p->GetWalkAnimationProgress() * M_PI * 2.f) * 0.013f * sp;
 				float vl = cosf(p->GetWalkAnimationProgress() * M_PI * 2.f);
@@ -872,11 +909,11 @@ namespace spades {
 				Matrix4 leg2 = Matrix4::Translate(0.25f, 0.2f, -0.1f);
 
 				float ang = sinf(p->GetWalkAnimationProgress() * M_PI * 2.f) * 0.6f;
-				float walkVel = Vector3::Dot(p->GetVelocty(), p->GetFront2D()) * 4.f;
+				float walkVel = Vector3::Dot(p->GetVelocity(), p->GetFront2D()) * 4.f;
 				leg1 = leg1 * Matrix4::Rotate(MakeVector3(1, 0, 0), ang * walkVel);
 				leg2 = leg2 * Matrix4::Rotate(MakeVector3(1, 0, 0), -ang * walkVel);
 
-				walkVel = Vector3::Dot(p->GetVelocty(), p->GetRight()) * 3.f;
+				walkVel = Vector3::Dot(p->GetVelocity(), p->GetRight()) * 3.f;
 				leg1 = leg1 * Matrix4::Rotate(MakeVector3(0, 1, 0), ang * walkVel);
 				leg2 = leg2 * Matrix4::Rotate(MakeVector3(0, 1, 0), -ang * walkVel);
 
@@ -906,11 +943,11 @@ namespace spades {
 				Matrix4 leg2 = Matrix4::Translate(0.25f, 0.f, -0.1f);
 
 				float ang = sinf(p->GetWalkAnimationProgress() * M_PI * 2.f) * 0.6f;
-				float walkVel = Vector3::Dot(p->GetVelocty(), p->GetFront2D()) * 4.f;
+				float walkVel = Vector3::Dot(p->GetVelocity(), p->GetFront2D()) * 4.f;
 				leg1 = leg1 * Matrix4::Rotate(MakeVector3(1, 0, 0), ang * walkVel);
 				leg2 = leg2 * Matrix4::Rotate(MakeVector3(1, 0, 0), -ang * walkVel);
 
-				walkVel = Vector3::Dot(p->GetVelocty(), p->GetRight()) * 3.f;
+				walkVel = Vector3::Dot(p->GetVelocity(), p->GetRight()) * 3.f;
 				leg1 = leg1 * Matrix4::Rotate(MakeVector3(0, 1, 0), ang * walkVel);
 				leg2 = leg2 * Matrix4::Rotate(MakeVector3(0, 1, 0), -ang * walkVel);
 
@@ -1214,7 +1251,7 @@ namespace spades {
 						case RIFLE_WEAPON:
 							model = renderer->RegisterModel("Models/Weapons/Rifle/Casing.kv6");
 							snd =
-							  (mt_engine_client() & 0x1000)
+							  SampleRandomBool()
 							    ? audioDevice->RegisterSound("Sounds/Weapons/Rifle/ShellDrop1.opus")
 							    : audioDevice->RegisterSound(
 							        "Sounds/Weapons/Rifle/ShellDrop2.opus");
@@ -1229,7 +1266,7 @@ namespace spades {
 						case SMG_WEAPON:
 							model = renderer->RegisterModel("Models/Weapons/SMG/Casing.kv6");
 							snd =
-							  (mt_engine_client() & 0x1000)
+							  SampleRandomBool()
 							    ? audioDevice->RegisterSound("Sounds/Weapons/SMG/ShellDrop1.opus")
 							    : audioDevice->RegisterSound("Sounds/Weapons/SMG/ShellDrop2.opus");
 							snd2 = audioDevice->RegisterSound("Sounds/Weapons/SMG/ShellWater.opus");

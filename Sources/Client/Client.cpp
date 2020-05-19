@@ -79,26 +79,18 @@ DEFINE_SPADES_SETTING(s_volume, "100");
 namespace spades {
 	namespace client {
 
-		// Define static variables for Client class
 		Client *Client::globalInstance = nullptr;
 
-		std::random_device r_device_client;
-		std::mt19937_64 mt_engine_client(
-		  r_device_client()); // Seed Mersenne twister with non-deterministic 32-bit seed
-
-		Client::Client(IRenderer *r, IAudioDevice *audioDev, const ServerAddress &host,
-		               FontManager *fontManager)
+		Client::Client(Handle<IRenderer> r, Handle<IAudioDevice> audioDev,
+		               const ServerAddress &host, Handle<FontManager> fontManager)
 		    : playerName(cg_playerName.operator std::string().substr(0, 15)),
 		      logStream(nullptr),
 		      hostname(host),
 		      renderer(r),
 		      audioDevice(audioDev),
 
-
 		      time(0.f),
 		      readyToClose(false),
-
-
 
 		      worldSubFrame(0.f),
 		      frameToRendererInit(5),
@@ -351,6 +343,8 @@ namespace spades {
 			renderer->RegisterModel("Models/Player/Head.kv6");
 			renderer->RegisterModel("Models/MapObjects/Intel.kv6");
 			renderer->RegisterModel("Models/MapObjects/CheckPoint.kv6");
+			renderer->RegisterModel("Models/MapObjects/BlockCursorLine.kv6");
+			renderer->RegisterModel("Models/MapObjects/BlockCursorSingle.kv6");
 			renderer->RegisterImage("Gfx/Bullet/7.62mm.png");
 			renderer->RegisterImage("Gfx/Bullet/9mm.png");
 			renderer->RegisterImage("Gfx/Bullet/12gauge.png");
@@ -465,6 +459,21 @@ namespace spades {
 			killfeedWindow->Update(dt);
 			limbo->Update(dt);
 
+			// The loading screen
+			if (net->GetStatus() == NetClientStatusReceivingMap) {
+				// Apply temporal smoothing on the progress value
+				float progress = net->GetMapReceivingProgress();
+
+				if (mapReceivingProgressSmoothed > progress) {
+					mapReceivingProgressSmoothed = progress;
+				} else {
+					mapReceivingProgressSmoothed +=
+					  (progress - mapReceivingProgressSmoothed) * (1.0 - powf(.05f, dt));
+				}
+			} else {
+				mapReceivingProgressSmoothed = 0.0;
+			}
+
 			// CreateSceneDefinition also can be used for sounds
 			SceneDefinition sceneDef = CreateSceneDefinition();
 			lastSceneDef = sceneDef;
@@ -488,14 +497,18 @@ namespace spades {
 			if (scriptedUI->WantsClientToBeClosed())
 				readyToClose = true;
 
-			// Well done!
-			renderer->FrameDone();
-			renderer->Flip();
-
 			// reset all "delayed actions" (in case we forget to reset these)
 			hasDelayedReload = false;
 
 			time += dt;
+		}
+
+		void Client::RunFrameLate(float dt) {
+			SPADES_MARK_FUNCTION();
+
+			// Well done!
+			renderer->FrameDone();
+			renderer->Flip();
 		}
 
 		bool Client::IsLimboViewActive() {
@@ -616,6 +629,7 @@ namespace spades {
 				std::string msg;
 				msg = _Tr("Client", "Map saved: {0}", name);
 				ShowAlert(msg, AlertType::Notice);
+				SPLog("Map saved: %s", name.c_str());
 			} catch (const Exception &ex) {
 				std::string msg;
 				msg = _Tr("Client", "Saving map failed: ");
@@ -740,8 +754,8 @@ namespace spades {
 
 			bool localPlayerIsSpectator = localPlayer.IsSpectator();
 
-			int nextId = FollowsNonLocalPlayer(GetCameraMode()) ? followedPlayerId :
-				world->GetLocalPlayerIndex();
+			int nextId = FollowsNonLocalPlayer(GetCameraMode()) ? followedPlayerId
+			                                                    : world->GetLocalPlayerIndex();
 			do {
 				reverse ? --nextId : ++nextId;
 
@@ -830,5 +844,5 @@ namespace spades {
 
 			return Vector3(col.x / 255.0f, col.y / 255.0f, col.z / 255.0f);
 		}
-	}
-}
+	} // namespace client
+} // namespace spades

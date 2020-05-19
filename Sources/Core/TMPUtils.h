@@ -45,11 +45,6 @@ namespace stmp {
 		optional() : has_some(false) {}
 		optional(const T &v) : has_some(false) { reset(v); }
 		optional(T &&v) : has_some(false) { reset(std::forward<T>(v)); }
-		optional(optional &o) : has_some(o.has_some) {
-			if (has_some) {
-				Allocator().construct(get_pointer(), o.get());
-			}
-		}
 		optional(const optional &o) : has_some(o.has_some) {
 			if (has_some) {
 				Allocator().construct(get_pointer(), o.get());
@@ -171,6 +166,8 @@ namespace stmp {
 		void operator=(const atomic_unique_ptr &) = delete;
 		void operator=(atomic_unique_ptr &&x) { exchange(x.take()); }
 
+		operator bool() const { return inner.load() != nullptr; }
+
 		inline std::unique_ptr<T>
 		unsafe_exchange(std::unique_ptr<T> &&desired,
 		                std::memory_order order = std::memory_order_seq_cst) {
@@ -193,4 +190,35 @@ namespace stmp {
 
 		inline T *release() { return take().release(); }
 	};
-}
+
+	/** `dyn Fn` */
+	template <class T> class dyn_function {
+	public:
+		static_assert(sizeof(T) != sizeof(T), "bad usage");
+	};
+
+	template <class R, class... Args> class dyn_function<R(Args...)> {
+	public:
+		virtual R operator()(Args &&... args) const = 0;
+	};
+
+	/** `impl Fn` */
+	template <class T, class Fn> class function {
+	public:
+		static_assert(sizeof(T) != sizeof(T), "bad usage");
+	};
+
+	template <class T, class R, class... Args>
+	class function<T, R(Args...)> : public dyn_function<R(Args...)> {
+	public:
+		function(T &&inner) : inner{inner} {}
+		R operator()(Args &&... args) const override { return inner(std::forward<Args>(args)...); }
+
+	private:
+		T inner;
+	};
+
+	template <class Fn, class T> function<T, Fn> make_fn(T &&inner) {
+		return function<T, Fn>(std::move(inner));
+	}
+} // namespace stmp

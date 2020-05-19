@@ -39,11 +39,9 @@
 #endif
 #endif
 
-#include "AutoLocker.h"
 #include "ConcurrentDispatch.h"
 #include "Debug.h"
 #include "Exception.h"
-#include "Mutex.h"
 #include "Settings.h"
 #include "Thread.h"
 #include <OpenSpades.h>
@@ -246,7 +244,7 @@ namespace spades {
 	public:
 		DispatchThread(GlobalDispatchThreadPool &pool) : pool{pool} {
 		}
-		virtual void Run() throw() {
+		void Run() noexcept override {
 			SPADES_MARK_FUNCTION();
 			while (true) {
 				SyncQueueEntry *ent = pool.globalQueue.Wait();

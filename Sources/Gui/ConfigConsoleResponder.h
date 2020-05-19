@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2013 yvt
+ Copyright (c) 2019 yvt
 
  This file is part of OpenSpades.
 
@@ -15,42 +15,25 @@
 
  You should have received a copy of the GNU General Public License
  along with OpenSpades.  If not, see <http://www.gnu.org/licenses/>.
-
  */
-
 #pragma once
 
-#include "ILockable.h"
+#include <Core/RefCountedObject.h>
+#include <string>
+
+#include "ConsoleCommandCandidate.h"
 
 namespace spades {
-	class AutoLocker {
-		ILockable *lockable;
+	namespace gui {
+		class ConsoleCommand;
 
-	public:
-		AutoLocker(ILockable *l) : lockable(l) {
-			if (lockable)
-				lockable->Lock();
-		}
-		AutoLocker(const AutoLocker &l) : lockable(l.lockable) {
-			if (lockable)
-				lockable->Lock();
-		}
-		~AutoLocker() {
-			if (lockable)
-				lockable->Unlock();
-		}
-		ILockable *Release() {
-			ILockable *l = lockable;
-			lockable = 0;
-			return l;
-		}
-		ILockable *GetLockable() { return lockable; }
-		void operator=(const AutoLocker &l) {
-			if (l.lockable)
-				l.lockable->Lock();
-			if (lockable)
-				lockable->Unlock();
-			lockable = l.lockable;
-		}
-	};
-}
+		/** Responds to console commands for accessing config variables. */
+		class ConfigConsoleResponder {
+		public:
+			static bool ExecCommand(const Handle<ConsoleCommand> &);
+
+			static Handle<ConsoleCommandCandidateIterator>
+			AutocompleteCommandName(const std::string &name);
+		};
+	} // namespace gui
+} // namespace spades
