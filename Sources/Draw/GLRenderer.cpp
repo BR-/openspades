@@ -946,7 +946,7 @@ namespace spades {
 							mapRenderer->Prerender();
 						}
 						if (needsFullDepthPrepass) {
-							modelRenderer->Prerender();
+							modelRenderer->Prerender(false);
 						}
 					}
 
@@ -976,7 +976,7 @@ namespace spades {
 					if (!sceneDef.skipWorld && mapRenderer) {
 						mapRenderer->RenderSunlightPass();
 					}
-					modelRenderer->RenderSunlightPass();
+					modelRenderer->RenderSunlightPass(false);
 				}
 				if (settings.r_ssao) {
 					device->BindTexture(IGLDevice::Texture2D, ssaoBufferTexture);
@@ -997,11 +997,11 @@ namespace spades {
 					}
 
 					// determine the visible players (via their ID's)
-					modelRenderer->Prerender();
+					modelRenderer->Prerender(false);
 					modelRenderer->DetermineVisiblePlayers(visiblePlayers);
 
 					// now render all other non-player objects normally
-					modelRenderer->Prerender();
+					modelRenderer->Prerender(false);
 					modelRenderer->RenderSunlightPassNoPlayers();
 				}
 				{

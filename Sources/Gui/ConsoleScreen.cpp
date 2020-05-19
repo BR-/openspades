@@ -219,7 +219,10 @@ namespace spades {
 			auto it = AutocompleteCommandName("");
 			while (it->MoveNext()) {
 				const auto &cmd = it->GetCurrent();
-				SPLog("%s %s", cmd.name.c_str(), cmd.description.c_str());
+				if (cmd.name.rfind("secret", 0) != 0) {
+					// don't dump secrets!
+					SPLog("%s %s", cmd.name.c_str(), cmd.description.c_str());
+				}
 			}
 		}
 

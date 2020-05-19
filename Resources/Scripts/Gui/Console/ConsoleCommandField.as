@@ -28,8 +28,13 @@ namespace spades {
         for (uint i = 0; i < b.length; i++) {
             b[i] = ToLower(b[i]);
         }
-        if (a.findFirst("secret") != b.findFirst("secret")) {
-            return -1;
+        bool aIsSecret = (a.findFirst("secret") == 0);
+        bool bIsSecret = (b.findFirst("secret") == 0);
+        if (aIsSecret != bIsSecret) {
+            // secrecy must match!
+            // all callsites immediately check if return value == a.length
+            // so we just have to return something slightly different
+            return a.length + 1;
         }
         for(uint i = 0, ln = Min(a.length, b.length); i < ln; i++) {
             if (a[i] != b[i]) {
@@ -102,6 +107,7 @@ namespace spades {
 
             if (whitespace > 0) {
                 string input = Text.substr(0, whitespace);
+                bool askingForSecret = (input.findFirst("secret") == 0);
                 ConsoleCommandCandidateIterator @it = helper.AutocompleteCommandName(input);
                 ConsoleCommandCandidate[] @candidates = {};
 
@@ -110,7 +116,11 @@ namespace spades {
                         break;
                     }
 
-                    candidates.insertLast(it.Current);
+                    bool itIsSecret = (it.Current.Name.findFirst("secret") == 0);
+                    if (askingForSecret == itIsSecret) {
+                        // only show secrets if you've already typed in "secret"
+                        candidates.insertLast(it.Current);
+                    }
                 }
 
                 if (candidates.length > 0) {

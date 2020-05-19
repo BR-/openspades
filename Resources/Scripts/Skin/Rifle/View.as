@@ -51,6 +51,8 @@ namespace spades {
 
             @fireSmallReverbSound = dev.RegisterSound("Sounds/Weapons/Rifle/V2AmbienceSmall.opus");
             @fireLargeReverbSound = dev.RegisterSound("Sounds/Weapons/Rifle/V2AmbienceLarge.opus");
+
+            @scopeImage = renderer.RegisterImage("Gfx/semi.png");
         }
 
         void Update(float dt) { BasicViewWeapon::Update(dt); }

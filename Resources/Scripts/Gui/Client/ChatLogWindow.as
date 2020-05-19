@@ -137,23 +137,7 @@ namespace spades {
 
         private void OnOkPressed(spades::ui::UIElement @sender) { Close(); }
 
-        private void OnTwitchChat(spades::ui::UIElement @sender) {
-            OnChat(spades::ChatType::twitch);
-        }
-
-        private void OnTeamChat(spades::ui::UIElement @sender) {
-            OnChat(spades::ChatType::team);
-        }
-
-        private void OnGlobalChat(spades::ui::UIElement @sender) {
-            OnChat(spades::ChatType::global);
-        }
-
-        private void OnCommandChat(spades::ui::UIElement@ sender) {
-            OnChat(spades::ChatType::team, true)
-        }
-
-        private void OnChat(spades::ui::UIElement @sender, spades::ChatType type, bool isCommand = false) {
+        private void OnChat(spades::ChatType type, bool isCommand = false) {
             if (sayWindow !is null) {
                 sayWindow.SetType(type);
                 return;
@@ -171,6 +155,22 @@ namespace spades {
             wnd.Bounds = this.Bounds;
             @this.sayWindow = wnd;
             @Manager.ActiveElement = wnd.field;
+        }
+
+        private void OnTwitchChat(spades::ui::UIElement @sender) {
+            OnChat(spades::ChatType::twitch);
+        }
+
+        private void OnTeamChat(spades::ui::UIElement @sender) {
+            OnChat(spades::ChatType::team);
+        }
+
+        private void OnGlobalChat(spades::ui::UIElement @sender) {
+            OnChat(spades::ChatType::global);
+        }
+
+        private void OnCommandChat(spades::ui::UIElement@ sender) {
+            OnChat(spades::ChatType::team, true);
         }
 
         void HotKey(string key) {

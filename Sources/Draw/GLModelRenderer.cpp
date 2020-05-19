@@ -189,7 +189,7 @@ namespace spades {
 						params.push_back(p);
 					}
 				}
-				m.model->RenderSunlightPass(params, false);
+				m.model->RenderSunlightPass(params, false, false);
 			}
 		}
 
@@ -222,7 +222,7 @@ namespace spades {
 						params.push_back(p);
 					}
 				}
-				m.model->RenderSunlightPass(params, true);
+				m.model->RenderSunlightPass(params, true, false);
 			}
 		}
 		void GLModelRenderer::RenderDynamicLightPassVisiblePlayers(bool visiblePlayers[],

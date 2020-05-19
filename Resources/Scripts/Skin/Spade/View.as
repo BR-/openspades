@@ -75,13 +75,17 @@ namespace spades {
 
         private Renderer@ renderer;
         private AudioDevice@ audioDevice;
+        private Model@ spadeModel;
+        private Model@ pickaxeModel;
         private Model@ model;
         private Image@ sightImage;
 
         ViewSpadeSkin(Renderer@ r, AudioDevice@ dev) {
             @renderer = r;
             @audioDevice = dev;
-            @model = renderer.RegisterModel("Models/Weapons/Spade/Spade.kv6");
+            @spadeModel = renderer.RegisterModel("Models/Weapons/Spade/Spade.kv6");
+            @pickaxeModel = renderer.RegisterModel("Models/Weapons/Spade/Pickaxe.kv6");
+            @model = @spadeModel;
             @sightImage = renderer.RegisterImage("Gfx/Sight.tga");
          }
 
