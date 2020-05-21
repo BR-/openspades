@@ -153,6 +153,7 @@ namespace spades {
 			bool hasLastTool;
 			Vector3 lastFront;
 			float lastPosSentTime;
+			float lastOrientationSentTime;
 			int lastHealth;
 			float lastHurtTime;
 			float lastAliveTime;

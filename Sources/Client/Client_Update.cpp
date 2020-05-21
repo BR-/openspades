@@ -1,4 +1,4 @@
-/*
+ /*
  Copyright (c) 2013 yvt
  based on code of pysnip (c) Mathias Kaerlev 2011-2012.
 
@@ -487,10 +487,12 @@ namespace spades {
 				SetSelectedTool(t);
 			}
 
-			// send orientation
+			// send orientation - 20 per second
 			Vector3 curFront = player->GetFront();
-			if (curFront.x != lastFront.x || curFront.y != lastFront.y ||
-			    curFront.z != lastFront.z) {
+			if ((curFront.x != lastFront.x || curFront.y != lastFront.y
+						|| curFront.z != lastFront.z)
+					&& time > lastOrientationSentTime + 0.05f) {
+				lastOrientationSentTime = time;
 				lastFront = curFront;
 				net->SendOrientation(curFront);
 			}
