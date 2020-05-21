@@ -100,6 +100,9 @@ namespace spades {
 
         void AddToScene() {
             Matrix4 mat = CreateScaleMatrix(0.033f);
+            if (@model == @pickaxeModel) {
+                mat = CreateScaleMatrix(2.f) * mat;
+            }
 
             if (actionType == spades::SpadeActionType::Bash) {
                 @model = @pickaxeModel;
