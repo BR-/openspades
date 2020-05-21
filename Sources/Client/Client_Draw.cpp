@@ -638,20 +638,34 @@ namespace spades {
 				// draw respawn tme
 				if (!p->IsAlive()) {
 					std::string msg;
-
 					float secs = p->GetRespawnTime() - world->GetTime();
+					bool red = false;
+					float scale;
 
-					if (secs > 0.f)
-						msg = _Tr("Client", "You will respawn in: {0}", (int)ceilf(secs));
-					else
+					if (secs > 0.f) {
+						msg = _Tr("Client", "{0}", (int)ceilf(secs));
+						scale = 3.f;
+						if (secs <= 3.f) {
+							red = true;
+						}
+					} else {
 						msg = _Tr("Client", "Waiting for respawn");
+						scale = 1.f;
+					}
 
 					if (!msg.empty()) {
-						font = fontManager->GetGuiFont();
-						Vector2 size = font->Measure(msg);
+						font = fontManager->GetLargeFont();
+						Vector2 size = font->Measure(msg) * scale;
 						Vector2 pos = MakeVector2((scrWidth - size.x) * .5f, scrHeight / 3.f);
 
-						font->DrawShadow(msg, pos, 1.f, MakeVector4(1, 1, 1, 1),
+						Vector4 color;
+						if (red) {
+							color = MakeVector4(1, 0, 0, 1);
+						} else {
+							color = MakeVector4(1, 1, 1, 1);
+						}
+
+						font->DrawShadow(msg, pos, scale, color,
 						                 MakeVector4(0, 0, 0, 0.5));
 					}
 				}
