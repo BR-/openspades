@@ -813,9 +813,11 @@ namespace spades {
 										if (rec.valid) {
 											float timespan = GetWorld()->GetTime() - rec.time;
 											timespan = std::max(0.16f, timespan);
-											Vector3 vel = (pos - rec.pos) / timespan;
-											vel *= 1.f / 32.f;
-											p->SetVelocity(vel);
+											Vector3 vel = (pos - rec.pos);
+											if (vel.GetPoweredLength() <= 4) {
+												vel /= 32.f * timespan;
+												// p->SetVelocity(vel);
+											}
 										}
 
 										rec.valid = true;
